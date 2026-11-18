@@ -1,0 +1,165 @@
+{
+ "site": {
+  "name": "The Artful Products",
+  "whatsapp": "910000000000",
+  "freeShippingAbove": 999,
+  "shippingFlat": 79,
+  "giftWrap": 49,
+  "flashSale": {
+   "active": false,
+   "title": "Finisher Week",
+   "text": "10% off route keepsakes this week.",
+   "code": "FINISHER10",
+   "percent": 10,
+   "ends": "2026-12-31T23:59:59+05:30"
+  },
+  "discountCodes": {}
+ },
+ "products": [
+  {
+   "id": "trail-magnet",
+   "name": "3D Trail Fridge Magnet",
+   "cat": "fridge-magnets",
+   "art": "magnet",
+   "price": 349,
+   "best": true,
+   "personal": true,
+   "sports": [
+    "running",
+    "cycling",
+    "trekking"
+   ],
+   "colours": [
+    {
+     "name": "Charcoal",
+     "hex": "#2B2A28"
+    },
+    {
+     "name": "Chalk",
+     "hex": "#F1EFEA"
+    },
+    {
+     "name": "Sand",
+     "hex": "#D8C6A5"
+    }
+   ],
+   "short": "Your route raised on real terrain, on a strong magnet.",
+   "desc": "A palm-sized relief of the terrain you covered, with your route raised on top in a contrasting colour. Backed with a strong magnet.",
+   "specs": [
+    "Approx. 70 × 50 mm",
+    "Two-colour 3D print",
+    "Strong magnet backing",
+    "Dispatch in 3–5 working days"
+   ]
+  },
+  {
+   "id": "route-keychain",
+   "name": "3D Trail Keychain",
+   "cat": "keychains",
+   "art": "keychain",
+   "price": 299,
+   "isNew": true,
+   "personal": true,
+   "sports": [
+    "running",
+    "cycling",
+    "trekking"
+   ],
+   "colours": [
+    {
+     "name": "Charcoal",
+     "hex": "#2B2A28"
+    },
+    {
+     "name": "Ember",
+     "hex": "#EC683B"
+    },
+    {
+     "name": "Glow",
+     "hex": "#CDE7AE"
+    }
+   ],
+   "short": "Your route outline as a slim, tough keychain.",
+   "desc": "The outline of your route as a slim keychain tag, with the event name and date on the back. Steel ring included.",
+   "specs": [
+    "Approx. 55 mm tall",
+    "Tough, flexible print",
+    "Steel split ring",
+    "Dispatch in 3–5 working days"
+   ]
+  },
+  {
+   "id": "medal-holder",
+   "name": "Ridge Medal Holder",
+   "cat": "medal-display",
+   "art": "holder",
+   "price": 1499,
+   "best": true,
+   "sports": [
+    "running",
+    "cycling",
+    "trekking"
+   ],
+   "colours": [
+    {
+     "name": "Charcoal",
+     "hex": "#2B2A28"
+    },
+    {
+     "name": "Stone",
+     "hex": "#9A9792"
+    },
+    {
+     "name": "Ember",
+     "hex": "#EC683B"
+    }
+   ],
+   "short": "A wall rack shaped like a ridge line, for all your medals.",
+   "desc": "A wall hanger shaped like an elevation profile, with hooks for your medals. Wall plugs and screws included.",
+   "specs": [
+    "Approx. 400 × 90 mm",
+    "Steel hooks",
+    "Holds up to 12 medals",
+    "Dispatch in 3–5 working days"
+   ]
+  },
+  {
+   "id": "terrain-frame",
+   "name": "Terrain Award Frame",
+   "cat": "frames",
+   "art": "frame",
+   "price": 3499,
+   "best": true,
+   "featured": true,
+   "badge": "Made to order",
+   "personal": true,
+   "sports": [
+    "running",
+    "cycling",
+    "trekking"
+   ],
+   "colours": [
+    {
+     "name": "Charcoal",
+     "hex": "#2B2A28"
+    },
+    {
+     "name": "Oak",
+     "hex": "#B98B5E"
+    },
+    {
+     "name": "Chalk",
+     "hex": "#F1EFEA"
+    }
+   ],
+   "short": "Your route in 3D terrain, framed next to your finisher medal.",
+   "desc": "Our signature piece. The route you completed is rebuilt in 3D terrain and set in a deep frame with space for your finisher medal and a plate with your name, time and event.",
+   "specs": [
+    "Deep shadow-box frame",
+    "3D-printed terrain insert",
+    "Medal mount + name plate",
+    "Dispatch in 7–10 working days"
+   ]
+  }
+ ]
+}

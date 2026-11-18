@@ -1,0 +1,14 @@
+# private — Razorpay keys live only on the server
+artful-config.php
+*.env
+.local/
+*.sqlite
+
+# build leftovers
+tools/_*.html
+__pycache__/
+*.pyc
+
+# printouts and local notes (not part of the website)
+*.pdf
+LAUNCH-CHECKLIST.md

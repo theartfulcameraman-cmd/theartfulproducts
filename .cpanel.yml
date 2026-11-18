@@ -1,0 +1,8 @@
+---
+# cPanel → Git Version Control → "Deploy HEAD Commit" runs these steps.
+# It copies the website (the site/ folder) into public_html.
+# CPANEL_USER is filled in once the cPanel username is known.
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/CPANEL_USER/public_html/
+    - /bin/cp -R site/. $DEPLOYPATH
