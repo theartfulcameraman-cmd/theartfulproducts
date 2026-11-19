@@ -13,6 +13,9 @@ ErrorDocument 404 /404.html
   # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </IfModule>
 
+# MilesWeb deploys by cloning the repository here, which leaves a hidden .git folder: never serve it
+RedirectMatch 404 /\.git
+
 # private files: never served directly
 <FilesMatch "^(_.*\.php|\.cpanel\.yml|README\.md)$">
   Require all denied
