@@ -3,6 +3,8 @@
 # Runs when changes to site/ are pushed to main, or by hand (GitHub → Actions → Deploy website → Run workflow).
 # Uses an FTP account that can ONLY see the theartfulproducts.com folder, so it can never touch
 # theartfulcompany.com / theartfulcompany.in in public_html.
+# mPanel → FTP Accounts → Directory must read:  /  theartfulproducts.com
+# (the "/" is the account folder /var/www/2d9a505e-…/ — don't type the full /var/www path after it).
 #
 # Needs three repository secrets (GitHub → Settings → Secrets and variables → Actions):
 #   FTP_SERVER    e.g. ftp.theartfulproducts.com  (from mPanel → FTP Accounts)
