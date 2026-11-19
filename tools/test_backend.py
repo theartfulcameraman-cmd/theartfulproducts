@@ -40,7 +40,7 @@ customer = {"name": "Test Runner", "phone": "9876543210", "email": "runner@examp
 mails_before = len(list(MAIL.glob("*.html"))) if MAIL.exists() else 0
 
 print("\n1. Pricing on the server matches the website")
-# expected totals from site/assets/js/pricing.js rules (magnet 349, keychain 299, holder 1499; free ship >= 999, else 79; wrap 49)
+# expected totals from site/assets/js/pricing.js rules (magnet 349, keychain 299, holder 1499; free ship >= 1799, else 79; wrap 49)
 cases = [
     ([{"id": "trail-magnet", "qty": 1}], {}, 349 + 79),
     ([{"id": "route-keychain", "qty": 1}], {"wrap": True}, 299 + 79 + 49),

@@ -43,7 +43,7 @@ SHIPPING = doc("Shipping policy",
 <h2>Delivery time</h2>
 <p>After dispatch, delivery usually takes {ph("2–5")} working days for metro cities and {ph("4–8")} working days elsewhere. We ship with {ph("[courier / shipping partner]")}, and you'll get a tracking link by WhatsApp or email when your order ships.</p>
 <h2>Shipping charges</h2>
-<p>Shipping is <b>free on orders above ₹999</b>. Orders below ₹999 have a flat shipping charge of <b>₹79</b>. Digital gift cards have no shipping charge.</p>
+<p>Shipping is <b>free on orders of ₹1,799 or more</b>. Smaller orders have a flat shipping charge of <b>₹79</b>. Digital gift cards have no shipping charge.</p>
 <h2>Damaged or missing parcels</h2>
 <p>If your parcel arrives damaged, please share a photo or unboxing video within <b>48 hours</b> of delivery and we'll reprint and resend your piece at no cost. If tracking shows delivered but you haven't received it, contact us within 7 days and we'll raise it with the courier.</p>
 <h2>Wrong address</h2>

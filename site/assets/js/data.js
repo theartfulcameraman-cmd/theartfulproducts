@@ -20,7 +20,7 @@ window.SITE = {
   phone: "+91 75881 30344",
   city: "Pune, Maharashtra",
   social: { instagram: "#", youtube: "#", strava: "#" }, // PLACEHOLDER links
-  freeShippingAbove: 999,
+  freeShippingAbove: 1799,
   shippingFlat: 79,
   giftWrap: 49,
   dispatchDays: [3, 5],                 // working days, for the delivery estimate
@@ -28,7 +28,7 @@ window.SITE = {
   showCategoryIcons: true,              // round category icons below the home-page banner
 
   announcements: [
-    "Free shipping across India on orders above ₹999",
+    "Free shipping across India on orders above ₹1,799",
     "Meet us at race expos — personalised frames made to order",
     "Organising an event? Finisher gifts in bulk"
   ],
