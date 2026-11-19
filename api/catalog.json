@@ -152,8 +152,16 @@
      "hex": "#F1EFEA"
     }
    ],
+   "images": [
+    "assets/img/products/terrain-frame-1.jpg",
+    "assets/img/products/terrain-frame-2.jpg",
+    "assets/img/products/terrain-frame-3.jpg",
+    "assets/img/products/terrain-frame-4.jpg",
+    "assets/img/products/terrain-frame-5.jpg"
+   ],
+   "video": "assets/video/winner-frame.mp4",
    "short": "Your route in 3D terrain, framed next to your finisher medal.",
-   "desc": "Our signature piece. The route you completed is rebuilt in 3D terrain and set in a deep frame with space for your finisher medal and a plate with your name, time and event.",
+   "desc": "Our signature piece. Your finisher medal is mounted on a printed race panel with your event, category, distance, date and elevation, and the route you completed is rebuilt below it in 3D terrain. Pictured: the podium frames we made for The Great Himalayan 2026.",
    "specs": [
     "Deep shadow-box frame",
     "3D-printed terrain insert",

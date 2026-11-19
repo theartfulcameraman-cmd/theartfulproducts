@@ -16,11 +16,17 @@ function config(): array {
   static $c = null;
   if ($c !== null) return $c;
   $home = getenv('HOME') ?: '';
+  // the cPanel home folder (/home/<user>), worked out from this file's own path, so it is found
+  // whether the site's folder is /home/<user>/theartfulproducts.com or /home/<user>/public_html/<domain>
+  $cpHome = preg_match('#^(/home\d*/[^/]+)/#', str_replace('\\', '/', __DIR__), $m) ? $m[1] : '';
   $candidates = array_filter([
     getenv('ARTFUL_CONFIG') ?: '',
     $home ? $home . '/artful-config.php' : '',
-    dirname(__DIR__, 2) . '/artful-config.php',   // one level above public_html
+    $cpHome ? $cpHome . '/artful-config.php' : '',
+    dirname(__DIR__, 2) . '/artful-config.php',   // one level above the site folder (also used for local testing)
   ]);
+  // never read a settings file from inside a public web folder
+  $candidates = array_filter($candidates, fn($f) => !preg_match('#/public_html/#', str_replace('\\', '/', $f)));
   foreach ($candidates as $f) {
     if (is_file($f)) { $c = include $f; if (is_array($c)) return $c; }
   }
