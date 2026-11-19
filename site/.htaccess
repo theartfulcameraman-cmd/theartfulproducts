@@ -7,17 +7,17 @@ ErrorDocument 404 /404.html
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # Force HTTPS. Switch this on once the free SSL certificate is active in cPanel → SSL/TLS Status
-  # (remove the # from the next two lines).
-  # RewriteCond %{HTTPS} !=on
-  # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # Always use HTTPS (the SSL certificate is active)
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </IfModule>
 
 # MilesWeb deploys by cloning the repository here, which leaves a hidden .git folder: never serve it
 RedirectMatch 404 /\.git
 
 # private files: never served directly
-<FilesMatch "^(_.*\.php|\.cpanel\.yml|README\.md)$">
+<FilesMatch "^(_.*\.php|\.cpanel\.yml|README\.md|\.ftp-deploy-sync-state\.json)$">
   Require all denied
 </FilesMatch>
 
