@@ -50,7 +50,7 @@ window.SITE = {
 
   // Razorpay — PLACEHOLDER. Paste your Key ID from the Razorpay dashboard (rzp_test_… first, then rzp_live_…).
   // The Key SECRET never goes here: it lives only on the server, in /home/<cpanel-user>/artful-config.php.
-  razorpayKey: "",
+  razorpayKey: "rzp_test_U20L0ZHQXXOCAc",   // TEST key — swap for rzp_live_… after KYC approval
   // Payment server (PHP, in site/api). Works on MilesWeb; not on the local preview, which has no PHP.
   razorpayOrderEndpoint: "api/create-order.php",
   razorpayVerifyEndpoint: "api/verify-payment.php"
