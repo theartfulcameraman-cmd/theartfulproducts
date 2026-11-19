@@ -201,24 +201,50 @@ function enquiry_create(string $kind, array $data): int {
 }
 
 /* ---------------- email ----------------
-   Uses PHP mail() (works on cPanel). For local testing, set 'mail_log_dir' in the config
-   and emails are written there as .html files instead of being sent. */
+   Uses PHP mail() through the host's mail server. Sent as a proper multipart message
+   (plain text + HTML, Date and Message-ID headers) so spam filters don't penalise it.
+   For local testing, set 'mail_log_dir' in the config: the HTML is saved as a .html file
+   and the full raw message as raw/*.eml, instead of being sent. */
+function html_to_text(string $html): string {
+  $t = preg_replace('#<(script|style)\b.*?</\1>#is', '', $html);
+  $t = preg_replace_callback('#<a\b[^>]*href="([^"]+)"[^>]*>(.*?)</a>#is', function ($m) {
+    $label = trim(strip_tags($m[2])); $url = html_entity_decode($m[1]);
+    return $label && $label !== $url ? "$label ($url)" : $url;
+  }, $t);
+  $t = preg_replace('#<br\s*/?>|</(p|div|h[1-6]|tr|li|table)>#i', "\n", $t);
+  $t = preg_replace('#</t[dh]>#i', "  ", $t);
+  $t = html_entity_decode(strip_tags($t), ENT_QUOTES, 'UTF-8');
+  $t = preg_replace("/[ \t]+/", ' ', $t);
+  $t = preg_replace("/ *\n */", "\n", $t);
+  return trim(preg_replace("/\n{3,}/", "\n\n", $t));
+}
+
 function send_mail(string $to, string $subject, string $html, string $replyTo = ''): bool {
   if (!$to || !filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
+  $from = cfg('mail_from') ?: ('orders@' . ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+  $domain = substr(strrchr($from, '@'), 1) ?: 'localhost';
+  $boundary = 'tap_' . bin2hex(random_bytes(12));
+  $headers = [
+    'MIME-Version: 1.0',
+    'Date: ' . date('r'),
+    'Message-ID: <' . bin2hex(random_bytes(16)) . '@' . $domain . '>',
+    'From: The Artful Products <' . $from . '>',
+    'Content-Type: multipart/alternative; boundary="' . $boundary . '"',
+  ];
+  if ($replyTo && filter_var($replyTo, FILTER_VALIDATE_EMAIL) && strcasecmp($replyTo, $to) !== 0) $headers[] = 'Reply-To: ' . $replyTo;
+  $part = fn($type, $content) => "--$boundary\r\nContent-Type: $type; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n" . chunk_split(base64_encode($content)) . "\r\n";
+  $body = $part('text/plain', html_to_text($html)) . $part('text/html', $html) . "--$boundary--\r\n";
+  $encSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
+
   $logDir = cfg('mail_log_dir');
   if ($logDir) {
-    @mkdir($logDir, 0777, true);
-    $f = $logDir . '/' . date('Ymd-His') . '-' . substr(md5($to . $subject . microtime()), 0, 6) . '.html';
-    file_put_contents($f, "<!-- To: $to | Subject: $subject -->\n" . $html);
+    @mkdir($logDir . '/raw', 0777, true);
+    $name = date('Ymd-His') . '-' . substr(md5($to . $subject . microtime()), 0, 6);
+    file_put_contents("$logDir/$name.html", "<!-- To: $to | Subject: $subject -->\n" . $html);
+    file_put_contents("$logDir/raw/$name.eml", "To: $to\r\nSubject: $encSubject\r\n" . implode("\r\n", $headers) . "\r\n\r\n" . $body);
     return true;
   }
-  $from = cfg('mail_from') ?: ('orders@' . ($_SERVER['HTTP_HOST'] ?? 'localhost'));
-  $headers = [
-    'MIME-Version: 1.0', 'Content-Type: text/html; charset=UTF-8',
-    'From: The Artful Products <' . $from . '>',
-    'Reply-To: ' . ($replyTo ?: (cfg('owner_email') ?: $from)),
-  ];
-  return @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $html, implode("\r\n", $headers), '-f' . $from);
+  return @mail($to, $encSubject, $body, implode("\r\n", $headers), '-f' . $from);
 }
 
 function email_wrap(string $title, string $body): string {
@@ -226,7 +252,7 @@ function email_wrap(string $title, string $body): string {
   return '<!doctype html><html><body style="margin:0;background:#f4f2ee;font-family:Arial,Helvetica,sans-serif;color:#111">
   <div style="max-width:560px;margin:0 auto;padding:24px">
     <div style="background:#111;color:#fff;padding:18px 22px;border-radius:12px 12px 0 0;font-weight:bold;font-size:18px">The Artful Products</div>
-    <div style="height:5px;background:linear-gradient(90deg,#FCC612,#F18F40,#E63F39)"></div>
+    <div style="height:5px;background:#EC683B"></div>
     <div style="background:#fff;padding:24px 22px;border-radius:0 0 12px 12px">
       <h2 style="margin:0 0 14px;font-size:20px">' . e($title) . '</h2>' . $body . '
     </div>
