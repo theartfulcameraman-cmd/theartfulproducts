@@ -30,7 +30,7 @@ function current_customer(): ?string {
 }
 
 function customer_payload(string $email): array {
-  $s = db()->prepare("SELECT * FROM orders WHERE LOWER(email) = ? AND payment_status IN ('paid','cod','refunded') ORDER BY id DESC LIMIT 50");
+  $s = db()->prepare("SELECT * FROM orders WHERE LOWER(email) = ? AND payment_status IN ('paid','cod','refunded') AND COALESCE(archived,0) = 0 ORDER BY id DESC LIMIT 50");
   $s->execute([$email]);
   $orders = []; $profile = null;
   foreach ($s->fetchAll() as $o) {

@@ -12,7 +12,7 @@ $q = trim((string)($_GET['q'] ?? ''));
 /* One row per customer. Two orders belong to the same customer if they share the EMAIL or the PHONE
    (either one is enough, and it chains: A~B by phone, B~C by email → A, B, C are one customer). */
 $rows = db()->query("SELECT id, name, phone, email, city, total, created_at, marketing_ok, order_no FROM orders
-                     WHERE payment_status IN ('paid','cod') AND stage <> 'cancelled' ORDER BY id ASC")->fetchAll();
+                     WHERE payment_status IN ('paid','cod') AND stage <> 'cancelled' AND COALESCE(archived,0) = 0 ORDER BY id ASC")->fetchAll();
 function norm_phone(string $p): string {
   $d = preg_replace('/\D/', '', $p);
   if (strlen($d) === 12 && str_starts_with($d, '91')) $d = substr($d, 2);

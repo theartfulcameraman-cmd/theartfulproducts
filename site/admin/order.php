@@ -56,6 +56,22 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     order_update($id, $f);
     add_event($id, 'update', 'Customer details edited');
     flash('Customer details saved.');
+  } elseif ($action === 'archive' || $action === 'restore') {
+    $arch = $action === 'archive' ? 1 : 0;
+    order_update($id, ['archived' => $arch]);
+    add_event($id, 'update', $arch ? 'Archived' : 'Restored from archive');
+    flash($o['order_no'] . ($arch ? ' archived. It no longer appears in your lists or totals; find it under Archived.' : ' restored.'));
+    if ($arch) { header('Location: index.php'); exit; }
+  } elseif ($action === 'delete') {
+    // permanent: only allowed for archived orders, and the order number must be typed to confirm
+    if (!(int)$o['archived']) { flash('Archive the order first; only archived orders can be deleted.'); }
+    elseif (strtoupper(trim((string)($_POST['confirm'] ?? ''))) !== strtoupper($o['order_no'])) { flash('Type the order number exactly to delete it.'); }
+    else {
+      db()->prepare('DELETE FROM order_events WHERE order_id = ?')->execute([$id]);
+      db()->prepare('DELETE FROM orders WHERE id = ?')->execute([$id]);
+      flash($o['order_no'] . ' deleted permanently.');
+      header('Location: index.php?view=archived'); exit;
+    }
   }
   header('Location: order.php?id=' . $id); exit;
 }
@@ -78,8 +94,9 @@ page_start($o['order_no']);
 <div class="ohead">
   <div><h1><?= e($o['order_no']) ?></h1>
     <p class="muted"><?= e(date('d M Y, g:ia', strtotime($o['created_at']))) ?> · <?= $o['source'] === 'manual' ? 'Added by hand' : 'Website' ?><?= $o['rzp_payment_id'] ? ' · ' . e($o['rzp_payment_id']) : '' ?></p></div>
-  <div class="ohead-b"><?= badge('pay', $o['payment_status']) ?> <?= badge('stage', $o['stage']) ?> <b class="big"><?= inr($o['total']) ?></b></div>
+  <div class="ohead-b"><?= (int)$o['archived'] ? '<span class="b">Archived</span>' : '' ?> <?= badge('pay', $o['payment_status']) ?> <?= badge('stage', $o['stage']) ?> <b class="big"><?= inr($o['total']) ?></b></div>
 </div>
+<?php if ((int)$o['archived']): ?><p class="warn" style="margin-bottom:16px">This order is archived: it's hidden from your lists, totals and the Customers page.</p><?php endif; ?>
 
 <div class="grid2">
   <section class="card">
@@ -157,4 +174,21 @@ page_start($o['order_no']);
     </ol>
   </section>
 </div>
+
+<section class="card danger-zone">
+  <h2>Archive or delete</h2>
+  <?php if (!(int)$o['archived']): ?>
+    <p class="muted">Archiving hides this order from your lists, sales totals and the Customers page (useful for test orders). You can restore it any time from <b>Orders → Archived</b>.</p>
+    <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="archive"><button class="btn">Archive this order</button></form>
+  <?php else: ?>
+    <div class="actions">
+      <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="restore"><button class="btn">Restore order</button></form>
+    </div>
+    <form method="post" class="form compact del" onsubmit="return confirm('Delete <?= e($o['order_no']) ?> permanently? This cannot be undone.')">
+      <?= csrf_field() ?><input type="hidden" name="action" value="delete">
+      <label class="grow">Delete permanently: type <b><?= e($o['order_no']) ?></b> to confirm<input name="confirm" autocomplete="off" placeholder="<?= e($o['order_no']) ?>"></label>
+      <button class="btn danger">Delete forever</button>
+    </form>
+  <?php endif; ?>
+</section>
 <?php page_end();

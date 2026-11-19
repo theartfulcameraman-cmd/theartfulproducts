@@ -3,18 +3,8 @@ require __DIR__ . '/_admin.php';
 if ($p = admin_ready()) { header('Location: login.php'); exit; }
 require_login();
 
-/* filters: "todo" = paid and still to be made/shipped (the default view) */
-$views = [
-  'todo' => ['To do', "payment_status IN ('paid','cod') AND stage NOT IN ('shipped','delivered','cancelled')"],
-  'awaiting_route' => ['Awaiting route', "stage = 'awaiting_route' AND payment_status IN ('paid','cod')"],
-  'preview_sent' => ['Preview sent', "stage = 'preview_sent'"],
-  'printing' => ['Approved / printing', "stage IN ('approved','printing','packed')"],
-  'shipped' => ['Shipped', "stage = 'shipped'"],
-  'delivered' => ['Delivered', "stage = 'delivered'"],
-  'unpaid' => ['Unpaid / abandoned', "payment_status IN ('pending','failed') AND stage <> 'cancelled'"],
-  'cancelled' => ['Cancelled', "stage = 'cancelled'"],
-  'all' => ['All', '1=1'],
-];
+/* filters: "todo" = paid and still to be made/shipped (the default view); archived orders only in "Archived" */
+$views = order_views();
 $view = isset($views[$_GET['view'] ?? '']) ? $_GET['view'] : 'todo';
 $q = trim((string)($_GET['q'] ?? ''));
 
@@ -32,13 +22,13 @@ $s->execute($args); $orders = $s->fetchAll();
 $counts = [];
 foreach ($views as $k => [, $w]) { $c = db()->query("SELECT COUNT(*) FROM orders WHERE $w"); $counts[$k] = (int)$c->fetchColumn(); }
 $sum = function (string $since) {
-  $s = db()->prepare("SELECT COUNT(*) n, COALESCE(SUM(total),0) t FROM orders WHERE payment_status IN ('paid','cod') AND created_at >= ?");
+  $s = db()->prepare("SELECT COUNT(*) n, COALESCE(SUM(total),0) t FROM orders WHERE payment_status IN ('paid','cod') AND stage <> 'cancelled' AND COALESCE(archived,0) = 0 AND created_at >= ?");
   $s->execute([$since]); return $s->fetch();
 };
 $today = $sum(date('Y-m-d 00:00:00'));
 $week = $sum(date('Y-m-d 00:00:00', strtotime('monday this week')));
 $month = $sum(date('Y-m-01 00:00:00'));
-$newEnq = (int)db()->query("SELECT COUNT(*) FROM enquiries WHERE status = 'new'")->fetchColumn();
+$newEnq = (int)db()->query("SELECT COUNT(*) FROM enquiries WHERE status = 'new' AND COALESCE(archived,0) = 0")->fetchColumn();
 
 page_start('Orders', 'index.php');
 ?>

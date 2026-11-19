@@ -4,14 +4,8 @@ require __DIR__ . '/_admin.php';
 if (admin_ready()) { header('Location: login.php'); exit; }
 require_login();
 
-$views = [
-  'todo' => "payment_status IN ('paid','cod') AND stage NOT IN ('shipped','delivered','cancelled')",
-  'awaiting_route' => "stage = 'awaiting_route' AND payment_status IN ('paid','cod')",
-  'preview_sent' => "stage = 'preview_sent'", 'printing' => "stage IN ('approved','printing','packed')",
-  'shipped' => "stage = 'shipped'", 'delivered' => "stage = 'delivered'",
-  'unpaid' => "payment_status IN ('pending','failed') AND stage <> 'cancelled'", 'cancelled' => "stage = 'cancelled'", 'all' => '1=1',
-];
-$where = $views[$_GET['view'] ?? 'all'] ?? '1=1'; $args = [];
+$views = order_views();
+$where = ($views[$_GET['view'] ?? 'all'] ?? $views['all'])[1]; $args = [];
 $q = trim((string)($_GET['q'] ?? ''));
 if ($q !== '') { $where .= ' AND (order_no LIKE ? OR name LIKE ? OR phone LIKE ? OR email LIKE ? OR city LIKE ?)'; $args = array_fill(0, 5, "%$q%"); }
 $s = db()->prepare("SELECT * FROM orders WHERE $where ORDER BY id DESC"); $s->execute($args);

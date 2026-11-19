@@ -112,6 +112,12 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--ink); }
 .tr.cust-sub { grid-template-columns: 2fr 1fr 1fr; }
 .tr.cust .actions { justify-content: flex-end; }
 @media (max-width: 900px) { .tr.cust, .tr.cust-sub { grid-template-columns: 1fr 1fr; } .tr.cust .actions { justify-content: flex-start; grid-column: 1 / -1; } }
+.danger-zone { border: 1.5px dashed #e7c0bb; }
+.danger-zone p { margin-top: 0; }
+.form.del { grid-template-columns: 1fr auto; margin-top: 16px; }
+.btn.danger { background: #b3261e; border-color: #b3261e; color: #fff; }
+.btn.sm.arch { border-color: var(--line); color: var(--ink-2); }
+.prod-acts { text-align: right; display: grid; gap: 8px; justify-items: end; }
 code { background: var(--soft); padding: 1px 6px; border-radius: 6px; font-size: .85em; }
 .timeline { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--line); }
 .timeline li { position: relative; padding: 0 0 14px 12px; }

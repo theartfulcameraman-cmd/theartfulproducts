@@ -144,7 +144,7 @@ s, b, _ = req("/admin/new-order.php", form={"csrf": token, "item[0][id]": "oneof
 check("one-off item without a name is refused", "Please name the one-off item" in b)
 s, b, _ = req(f"/admin/products.php?edit={cpid}"); token = re.search(r'name="csrf" value="([^"]+)"', b).group(1)
 s, b, _ = req("/admin/products.php", form={"csrf": token, "id": cpid, "name": "Corporate Trek Trophy", "price": "2500", "category": "Awards", "description": "", "personal": "1"})
-check("retired product shown as Retired", "Retired" in b)
+check("retired product shown as Archived", "Archived" in b)
 s, b, _ = req("/admin/new-order.php"); check("retired product no longer offered", "Corporate Trek Trophy" not in b)
 
 print("\n8. Customer accounts (email code, no password)")
@@ -205,6 +205,52 @@ check("consent at checkout recorded", any("consent@example.com" in r[2] and r[8]
 check("no consent = No", any("runner@example.com" in r[2] and r[8] == "No" for r in rows))
 s, b, _ = req("/admin/customers.php?view=repeat"); check("repeat customers view lists the chain", "Chain One" in b and "Repeat" in b)
 s, b, _ = req("/admin/customers.php?view=subscribers"); check("newsletter sign-ups listed", "fan@example.com" in b)
+
+
+print("\n10. Archive / restore / delete")
+def tok(page):
+    s, b, _ = req(page); return re.search(r'name="csrf" value="([^"]+)"', b).group(1), b
+# --- orders ---
+s, b, _ = req("/admin/index.php?view=all&q=Expo%20Buyer"); ex_id = re.findall(r"order\.php\?id=(\d+)", b)[0]
+s, b, _ = req(f"/admin/order.php?id={ex_id}"); ex_no = re.search(r"<h1>(TAP\d+)</h1>", b).group(1)
+before = re.search(r"<small>This month</small><b>(₹[\d,]+)</b>", req("/admin/index.php")[1]).group(1)
+t, _ = tok(f"/admin/order.php?id={ex_id}")
+s, b, _ = req(f"/admin/order.php?id={ex_id}", form={"csrf": t, "action": "delete", "confirm": ex_no}); 
+check("can't delete an order that isn't archived", "Archive the order first" in b)
+t, _ = tok(f"/admin/order.php?id={ex_id}")
+s, b, _ = req(f"/admin/order.php?id={ex_id}", form={"csrf": t, "action": "archive"})
+check("order archived", "archived" in b.lower())
+s, b, _ = req("/admin/index.php?view=all"); check("archived order hidden from All", ex_no not in b)
+after = re.search(r"<small>This month</small><b>(₹[\d,]+)</b>", b).group(1)
+check("archived order left out of sales totals", before != after, (before, after))
+s, b, _ = req("/admin/index.php?view=archived"); check("archived order in Archived tab", ex_no in b)
+s, b, _ = req("/admin/customers.php?view=all"); check("archived order left out of Customers", "Expo Buyer" not in b)
+t, _ = tok(f"/admin/order.php?id={ex_id}")
+s, b, _ = req(f"/admin/order.php?id={ex_id}", form={"csrf": t, "action": "restore"})
+s, b, _ = req("/admin/index.php?view=all"); check("restored order back in All", ex_no in b)
+t, _ = tok(f"/admin/order.php?id={ex_id}"); req(f"/admin/order.php?id={ex_id}", form={"csrf": t, "action": "archive"})
+t, _ = tok(f"/admin/order.php?id={ex_id}")
+s, b, _ = req(f"/admin/order.php?id={ex_id}", form={"csrf": t, "action": "delete", "confirm": "WRONG"})
+check("delete needs the order number typed", "Type the order number" in b)
+t, _ = tok(f"/admin/order.php?id={ex_id}")
+s, b, _ = req(f"/admin/order.php?id={ex_id}", form={"csrf": t, "action": "delete", "confirm": ex_no.lower()})
+check("archived order deleted", "deleted permanently" in b)
+s, b, _ = req(f"/admin/order.php?id={ex_id}"); check("deleted order is gone", s == 404)
+# --- enquiries ---
+s, b, _ = req("/admin/enquiries.php"); en_id = re.search(r'name="id" value="(\d+)"', b).group(1); t = re.search(r'name="csrf" value="([^"]+)"', b).group(1)
+s, b, _ = req("/admin/enquiries.php", form={"csrf": t, "id": en_id, "action": "delete"}); check("can't delete an unarchived enquiry", "Archive the enquiry first" in b)
+s, b, _ = req("/admin/enquiries.php", form={"csrf": t, "id": en_id, "action": "archive"}); check("enquiry archived", "Test Marathon" not in b)
+s, b, _ = req("/admin/enquiries.php?s=archived"); check("enquiry in Archived tab", "Test Marathon" in b)
+s, b, _ = req("/admin/enquiries.php?s=archived", form={"csrf": t, "id": en_id, "action": "delete"})
+s, b, _ = req("/admin/enquiries.php?s=archived"); check("archived enquiry deleted", "Test Marathon" not in b)
+# --- custom products ---
+t, b = tok("/admin/products.php"); pid = re.search(r"\?edit=(\d+)", b).group(1)
+s, b, _ = req("/admin/products.php", form={"csrf": t, "id": pid, "action": "restore"}); check("custom product restored", "restored" in b)
+s, b, _ = req("/admin/products.php", form={"csrf": t, "id": pid, "action": "delete"}); check("can't delete an active product", "Archive the product first" in b)
+s, b, _ = req("/admin/products.php", form={"csrf": t, "id": pid, "action": "archive"})
+s, b, _ = req("/admin/products.php", form={"csrf": t, "id": pid, "action": "delete"}); check("archived product deleted", "deleted permanently" in b and f"?edit={pid}" not in b)
+s, b, _ = req("/admin/index.php?view=all&q=Corporate%20Client"); oid2 = re.findall(r"order\.php\?id=(\d+)", b)[0]
+s, b, _ = req(f"/admin/order.php?id={oid2}"); check("past order still shows the deleted product's name", "Corporate Trek Trophy" in b)
 
 s, b, url = req("/admin/logout.php"); s, b, url = req("/admin/index.php"); check("logged out", "Admin login" in b)
 

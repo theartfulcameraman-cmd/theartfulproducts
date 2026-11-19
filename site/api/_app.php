@@ -113,6 +113,9 @@ function migrate(PDO $p): void {
   )$tail");
   // marketing consent ticked at checkout (DPDP: only message customers who agreed)
   try { $p->exec('ALTER TABLE orders ADD COLUMN marketing_ok INT DEFAULT 0'); } catch (PDOException $e) {}
+  // archive = hidden from admin lists and totals, restorable; delete is only allowed once archived
+  try { $p->exec('ALTER TABLE orders ADD COLUMN archived INT DEFAULT 0'); } catch (PDOException $e) {}
+  try { $p->exec('ALTER TABLE enquiries ADD COLUMN archived INT DEFAULT 0'); } catch (PDOException $e) {}
   // admin-only products for custom / offline orders — never shown on the website
   $p->exec("CREATE TABLE IF NOT EXISTS custom_products (
     id $id, created_at VARCHAR(20), name VARCHAR(160), price INT DEFAULT 0, category VARCHAR(80) DEFAULT '',
