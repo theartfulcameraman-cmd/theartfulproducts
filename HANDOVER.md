@@ -18,7 +18,8 @@ Full technical guide: `README.md`.
   (the same account hosts theartfulcompany.com in `public_html`, which the deploy must never touch).
 
 ## Not done yet / waiting on Soham
-- [x] `.cpanel.yml` deploys to `$HOME/theartfulproducts.com/` (its document root). `public_html` is theartfulcompany.com/.in — never deploy there
+- [x] MilesWeb GitHub deploy should use branch **`live`** (website only); publish with `python tools/publish.py`
+- [x] `.cpanel.yml` (cPanel Git Version Control route, if ever used) deploys to `$HOME/theartfulproducts.com/` (its document root). `public_html` is theartfulcompany.com/.in — never deploy there
 - [ ] MilesWeb one-time setup (README → "Order system → One-time setup"): MySQL database, `orders@` mailbox,
       `/home/<user>/artful-config.php` with Razorpay keys + DB + admin password, Razorpay webhook
 - [ ] Razorpay account + test keys → put Key ID in `site/assets/js/data.js` → `razorpayKey`

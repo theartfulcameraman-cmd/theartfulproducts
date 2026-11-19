@@ -95,6 +95,17 @@ changed in the browser. After payment, `api/verify-payment.php` checks Razorpay'
 "payment received" page is shown. **After changing prices or products, always rebuild before pushing**,
 so the server's price list matches the website.
 
+
+### Publishing with MilesWeb's GitHub deploy (what's actually connected)
+MilesWeb → *GitHub* deploys a branch automatically on every push. The repository has two branches:
+- **`main`**: everything (website in `site/`, tools, notes). Never deployed.
+- **`live`**: only the website (the contents of `site/`, `index.html` at the top). **This is the branch MilesWeb deploys**
+  to theartfulproducts.com.
+
+To publish changes: commit them on `main`, then run `python tools/publish.py`. It pushes `main`, rebuilds
+`live` from `site/`, checks no private files are included, and pushes `live`, which MilesWeb then puts live.
+(`python tools/publish.py --dry-run` shows what would happen without pushing.)
+
 ## Order system (admin dashboard)
 
 Every website order is saved, and you manage it at **`https://<your-domain>/admin`**:
