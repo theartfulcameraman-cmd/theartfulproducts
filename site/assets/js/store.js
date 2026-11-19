@@ -416,7 +416,7 @@
         <div><h4>Company</h4><a href="about.html">About us</a><a href="organisers.html">For organisers</a><a href="privacy.html">Privacy policy</a><a href="terms.html">Terms &amp; conditions</a></div>
         <div><h4>Contact</h4><a href="https://wa.me/${S.whatsapp}" target="_blank" rel="noopener">WhatsApp ${esc(S.phone)}</a><a href="mailto:${S.email}">${esc(S.email)}</a><span class="muted">${esc(S.city)}</span></div>
       </div>
-      <div class="wrap fine"><span>© ${new Date().getFullYear()} ${S.name}. All rights reserved.</span><span class="pay"><i>UPI</i><i>VISA</i><i>Mastercard</i><i>RuPay</i><i>Razorpay</i></span></div>`;
+      <div class="wrap fine"><span>© ${new Date().getFullYear()} ${S.name}. Built, Managed and Owned by The Artful Company. All Rights Reserved.</span><span class="pay"><i>UPI</i><i>VISA</i><i>Mastercard</i><i>RuPay</i><i>Razorpay</i></span></div>`;
     const top = document.createElement("button"); top.className = "to-top"; top.setAttribute("aria-label", "Back to top"); top.innerHTML = icon.chev;
     top.addEventListener("click", () => scrollTo({ top: 0, behavior: "smooth" })); document.body.appendChild(top);
     addEventListener("scroll", () => top.classList.toggle("on", scrollY > 900), { passive: true });
