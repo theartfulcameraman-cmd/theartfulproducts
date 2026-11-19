@@ -21,7 +21,7 @@ Full technical guide: `README.md`.
 - [ ] Deploy = GitHub Actions FTP upload of `site/` (`.github/workflows/deploy.yml`) on push to main. Needs: FTP account limited to the theartfulproducts.com folder + 3 GitHub secrets. Hosting is mPanel, not cPanel. (`live` branch + MilesWeb GitHub app no longer used)
 - [x] `.cpanel.yml` (cPanel Git Version Control route, if ever used) deploys to `$HOME/theartfulproducts.com/` (its document root). `public_html` is theartfulcompany.com/.in — never deploy there
 - [ ] MilesWeb one-time setup (README → "Order system → One-time setup"): MySQL database, `orders@` mailbox,
-      `/home/<user>/artful-config.php` with Razorpay keys + DB + admin password, Razorpay webhook
+      `/var/www/2d9a505e-…/artful-config.php` (account folder, above the site folder) with Razorpay keys + DB + admin password, Razorpay webhook
 - [ ] Razorpay account + test keys → put Key ID in `site/assets/js/data.js` → `razorpayKey`
 - [ ] Domain: set `SITE_URL` in `tools/build_pages.py`, rebuild; then un-comment the HTTPS lines in `site/.htaccess`
 - [ ] Real product photos, final prices, colours (see launch checklist), WhatsApp number, email, social links in `data.js`

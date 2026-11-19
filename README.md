@@ -97,7 +97,12 @@ so the server's price list matches the website.
 
 
 ### Deploying (GitHub Actions → FTP → theartfulproducts.com)
-The hosting is MilesWeb **mPanel** (not cPanel; `.cpanel.yml` is unused there). Deploys work like this:
+The hosting is MilesWeb **mPanel** (not cPanel; `.cpanel.yml` is unused there).
+Account folder: `/var/www/2d9a505e-7ba3-4e07-aad5-3f5880073fd8/` containing `public_html` (theartfulcompany.com/.in),
+`theartfulproducts.com` (**this site's document root**) and an unused `deploys/` folder left by MilesWeb's GitHub tool.
+The private settings file goes in the account folder: `/var/www/2d9a505e-…/artful-config.php`.
+
+Deploys work like this:
 1. Changes are committed on `main` and pushed (`python tools/publish.py`).
 2. GitHub Actions (`.github/workflows/deploy.yml`) uploads the `site/` folder by FTP into theartfulproducts.com's
    own folder. You can also run it by hand: GitHub → *Actions* → *Deploy website* → *Run workflow*.
@@ -134,8 +139,8 @@ orders), a "new order" alert to you, and a "your order has shipped" email with t
    The tables are created automatically on first use.
 2. **Order email address** — cPanel → *Email Accounts*: create e.g. `orders@<your-domain>`.
    Then cPanel → *Email Deliverability* → make sure SPF and DKIM show as valid (so emails don't land in spam).
-3. **Private settings file** — cPanel → *File Manager* → your home folder (one level **above** `public_html`)
-   → create `artful-config.php`:
+3. **Private settings file** — File Manager → the account folder `/var/www/2d9a505e-…/` (one level **above**
+   `theartfulproducts.com`, never inside it or `public_html`) → create `artful-config.php`:
    ```php
    <?php return [
      'key_id'         => 'rzp_test_…',          // Razorpay key ID
