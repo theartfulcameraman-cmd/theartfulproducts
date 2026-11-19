@@ -9,8 +9,8 @@ def ph(text):
 
 BIZ = ph("[Legal business name]")
 ADDR = ph("[Registered business address, Pune, Maharashtra]")
-EMAIL = ph("[order email]")
-PHONE = ph("[WhatsApp / phone]")
+EMAIL = '<a href="mailto:orders@theartfulproducts.com">orders@theartfulproducts.com</a>'
+PHONE = '<a href="https://wa.me/917588130344">+91 75881 30344</a>'
 
 def crumb(label):
     return f'<nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><i>/</i><span>{label}</span></nav>'

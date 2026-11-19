@@ -15,9 +15,9 @@
 window.SITE = {
   name: "The Artful Products",
   tagline: "Objects made from the moments you earned.",
-  whatsapp: "910000000000",            // PLACEHOLDER — country code + number, no +
-  email: "hello@example.com",           // PLACEHOLDER
-  phone: "+91 00000 00000",             // PLACEHOLDER
+  whatsapp: "917588130344",            // WhatsApp Business: country code + number, no +
+  email: "orders@theartfulproducts.com",
+  phone: "+91 75881 30344",
   city: "Pune, Maharashtra",
   social: { instagram: "#", youtube: "#", strava: "#" }, // PLACEHOLDER links
   freeShippingAbove: 999,
