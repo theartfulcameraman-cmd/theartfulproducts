@@ -317,6 +317,8 @@
             <div class="row"><input name="phone" placeholder="Mobile" required inputmode="tel" autocomplete="tel"><input name="email" type="email" placeholder="Email" required autocomplete="email"></div>
             <textarea name="address" rows="2" placeholder="House, street, area" required autocomplete="street-address"></textarea>
             <div class="row"><input name="city" placeholder="City" required autocomplete="address-level2"><input name="pin" placeholder="PIN code" required inputmode="numeric" pattern="[0-9]{6}" autocomplete="postal-code"></div>
+            <label class="chk consent"><input type="checkbox" name="marketing" value="1"><span>Send me new products and offers on WhatsApp / email. You can opt out any time.</span></label>
+            <p class="muted small acct-hint" data-acct-hint><a href="account.html">Log in</a> to fill in your details from your last order.</p>
             <button class="btn primary block" type="submit">Pay ${inr(total)} securely</button>
             <p class="pay-note">${T().icon.lock}<span>Payments by Razorpay · UPI · Cards · Netbanking · Wallets</span></p>
             <p class="status" id="pay-status" hidden></p>
@@ -332,7 +334,17 @@
       $("[data-note]", c).oninput = e => { opts.note = e.target.value; store.set("tap_cartopts", opts); };
       $("[data-code]", c).onsubmit = e => { e.preventDefault(); const v = $("input", e.target).value.trim().toUpperCase(); if (v && !window.TAP_PRICING.discountRate(v, S)) { T().toast("That code isn't valid"); return; } opts.code = v; store.set("tap_cartopts", opts); render(); if (v) T().toast("Code applied"); };
       $("#checkout").onsubmit = e => { e.preventDefault(); pay(Object.fromEntries(new FormData(e.target)), { ...t, items, opts }, e.target); };
+      // logged-in customers: fill empty delivery fields from their last order
+      profile.then(p => {
+        const f = $("#checkout"); if (!f) return;
+        const hint = $("[data-acct-hint]", f);
+        if (!p) return;
+        if (hint) hint.textContent = "Details filled in from your account.";
+        ["name", "phone", "email", "address", "city", "pin"].forEach(k => { if (f[k] && !f[k].value && p[k]) f[k].value = p[k]; });
+      });
     };
+    const profile = (window.TAP_ACCOUNT ? window.TAP_ACCOUNT("me") : Promise.reject())
+      .then(r => r.ok ? r.data.profile || null : null).catch(() => null);
     document.addEventListener("cart:change", render);
     render();
   }
@@ -360,7 +372,7 @@
     busy(true);
     try {
       if (!window.Razorpay) await new Promise((ok, no) => { const s = document.createElement("script"); s.src = "https://checkout.razorpay.com/v1/checkout.js"; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
-      const order = await post(S.razorpayOrderEndpoint, { items: o.items, code: o.opts.code, wrap: o.opts.wrap, note: o.opts.note, customer: d });
+      const order = await post(S.razorpayOrderEndpoint, { items: o.items, code: o.opts.code, wrap: o.opts.wrap, note: o.opts.note, customer: d, marketing: !!d.marketing });
       busy(false);
       new window.Razorpay({
         key: order.key || S.razorpayKey, amount: order.amount, currency: order.currency || "INR", order_id: order.id,
@@ -435,5 +447,83 @@
     });
   }
 
-  window.TAP_PAGES = { home, shop, product, cart, wishlist, org, faq, contact };
+  /* ================= MY ACCOUNT (passwordless: email → 6-digit code) ================= */
+  const accountApi = (action, data) => fetch("api/account.php", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, ...(data || {}) }) })
+    .then(async r => ({ ok: r.ok, status: r.status, data: await r.json().catch(() => ({})) }));
+
+  function account() {
+    const { $, esc, inr } = T(), box = $("#acct");
+    const STEPS = [["paid", "Order placed"], ["preview_sent", "Preview"], ["printing", "Making"], ["shipped", "Shipped"], ["delivered", "Delivered"]];
+    const RANK = { new: 0, awaiting_route: 0, preview_sent: 1, approved: 1, printing: 2, packed: 2, shipped: 3, delivered: 4 };
+
+    const showLogin = (msg) => {
+      box.innerHTML = `<div class="acct-login">
+        <h1>My account</h1>
+        <p class="muted">See your orders and their status. No password needed: we'll email you a 6-digit code.</p>
+        <form id="acct-email" class="acct-form">
+          <label class="fld">Email you ordered with<input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></label>
+          <button class="btn primary block">Email me a code</button>
+        </form>
+        <form id="acct-code" class="acct-form" hidden>
+          <p>We sent a code to <b data-email></b>. It works for 10 minutes. Check spam if you don't see it.</p>
+          <label class="fld">6-digit code<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="123456"></label>
+          <button class="btn primary block">Log in</button>
+          <button type="button" class="link" data-back>Use a different email</button>
+        </form>
+        <p class="status" id="acct-msg" ${msg ? "" : "hidden"}>${msg ? esc(msg) : ""}</p>
+      </div>`;
+      const say = m => { const s = $("#acct-msg"); s.hidden = !m; s.textContent = m || ""; };
+      let email = "";
+      $("#acct-email").onsubmit = async e => {
+        e.preventDefault(); email = e.target.email.value.trim(); say("");
+        const btn = $("button", e.target); btn.disabled = true;
+        const r = await accountApi("request_code", { email }).catch(() => ({ ok: false, data: {} }));
+        btn.disabled = false;
+        if (!r.ok) { say(r.data.error || "Couldn't send the code. Please try again."); return; }
+        e.target.hidden = true; $("#acct-code").hidden = false; $("[data-email]").textContent = email; $("#acct-code").code.focus();
+      };
+      $("#acct-code").onsubmit = async e => {
+        e.preventDefault(); say("");
+        const r = await accountApi("verify_code", { email, code: e.target.code.value.trim() }).catch(() => ({ ok: false, data: {} }));
+        if (!r.ok) { say(r.data.error || "Couldn't log in. Please try again."); return; }
+        showAccount(r.data);
+      };
+      $("[data-back]").onclick = () => { $("#acct-code").hidden = true; $("#acct-email").hidden = false; say(""); };
+    };
+
+    const showAccount = (d) => {
+      const p = d.profile || {}, first = (p.name || "").split(" ")[0];
+      const orderCard = o => {
+        const rank = o.stage === "cancelled" ? -1 : (RANK[o.stage] ?? 0);
+        return `<article class="acct-order">
+          <header><div><b>${esc(o.order_no)}</b><span class="muted small">${esc(new Date(o.date.replace(" ", "T")).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }))}</span></div>
+            <div class="acct-status ${o.stage === "cancelled" ? "x" : ""}">${esc(o.stage_label)}</div></header>
+          ${o.stage === "cancelled" ? "" : `<ol class="acct-steps">${STEPS.map(([, label], i) => `<li class="${i <= rank ? "reached" : ""}">${label}</li>`).join("")}</ol>`}
+          ${o.stage === "awaiting_route" ? `<p class="acct-note">Next step: send us your route (GPX file, Strava link or event name). <a href="https://wa.me/${S.whatsapp}?text=${encodeURIComponent("Hi! Here is the route for my order " + o.order_no + ":")}" target="_blank" rel="noopener">Send it on WhatsApp →</a></p>` : ""}
+          <ul class="acct-items">${o.items.map(i => `<li><span>${esc(i.name)} ×${i.qty}${[i.colour, i.opt].filter(Boolean).length ? ` <span class="muted">· ${esc([i.colour, i.opt].filter(Boolean).join(" · "))}</span>` : ""}${i.note ? `<br><span class="muted small">“${esc(i.note)}”</span>` : ""}</span></li>`).join("")}</ul>
+          <footer><b>${inr(o.total)}</b>
+            ${o.tracking_url ? `<a class="btn primary sm" href="${esc(o.tracking_url)}" target="_blank" rel="noopener">Track parcel</a>` : o.tracking_no ? `<span class="muted small">${esc(o.courier)} · ${esc(o.tracking_no)}</span>` : ""}
+          </footer></article>`;
+      };
+      box.innerHTML = `<div class="acct-head"><div><h1>${first ? `Hi ${esc(first)}` : "My account"}</h1><p class="muted">${esc(d.email)}</p></div>
+          <button class="btn ghost sm" data-logout>Log out</button></div>
+        <div class="acct-grid">
+          <section><h2>My orders</h2>
+            ${d.orders.length ? d.orders.map(orderCard).join("") : `<div class="acct-empty"><p>No orders with this email yet.</p><a class="btn primary" href="shop.html">Browse the shop</a></div>`}
+          </section>
+          <aside class="acct-side">
+            ${p.name ? `<div class="acct-card"><h3>Delivery details</h3><p>${esc(p.name)}<br>${esc(p.address)}<br>${esc(p.city)} ${esc(p.pin)}<br>${esc(p.phone)}</p><p class="muted small">Filled in for you at checkout.</p></div>` : ""}
+            <div class="acct-card"><h3>Need help with an order?</h3><p class="muted small">Message us with your order number.</p>
+              <a class="btn ghost sm" href="https://wa.me/${S.whatsapp}" target="_blank" rel="noopener">WhatsApp us</a></div>
+          </aside>
+        </div>`;
+      $("[data-logout]").onclick = async () => { await accountApi("logout").catch(() => {}); showLogin("You're logged out."); };
+    };
+
+    box.innerHTML = `<p class="muted">Loading…</p>`;
+    accountApi("me").then(r => r.ok ? showAccount(r.data) : showLogin()).catch(() => showLogin());
+  }
+  window.TAP_ACCOUNT = accountApi;
+
+  window.TAP_PAGES = { home, shop, product, cart, wishlist, org, faq, contact, account };
 })();

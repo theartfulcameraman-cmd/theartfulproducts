@@ -51,7 +51,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 
     $pay = isset(PAYMENT[$_POST['payment_status'] ?? '']) ? $_POST['payment_status'] : 'pending';
     $method = clip($_POST['method'] ?? '', 40);
-    $o = order_create($t, $c, (string)($_POST['note'] ?? ''), 'manual', null, $pay, $method);
+    $o = order_create($t, $c, (string)($_POST['note'] ?? ''), 'manual', null, $pay, $method, !empty($_POST['marketing']));
     $oid = (int)$o['id'];
     $stage = isset(STAGES[$_POST['stage'] ?? '']) ? $_POST['stage'] : 'new';
     if ($stage === 'new' && in_array($pay, ['paid', 'cod'], true) && array_filter($lines, fn($l) => $l['personal'])) $stage = 'awaiting_route';
@@ -122,6 +122,7 @@ page_start('New order', 'new-order.php');
   <label>Starting stage<select name="stage"><?php foreach (STAGES as $k => $label): ?><option value="<?= $k ?>"><?= $label ?></option><?php endforeach; ?></select></label>
   <label class="full">Note<textarea name="note" rows="2"></textarea></label>
   <label class="full chk"><input type="checkbox" name="send_email" value="1"> Email the customer an order confirmation</label>
+  <label class="full chk"><input type="checkbox" name="marketing" value="1"> Customer agreed to receive new products &amp; offers (WhatsApp / email)</label>
   <button class="btn primary">Add order</button>
 </form>
 <script>

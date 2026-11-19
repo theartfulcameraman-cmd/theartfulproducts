@@ -102,6 +102,17 @@ function migrate(PDO $p): void {
     data TEXT, status VARCHAR(20) DEFAULT 'new', notes TEXT
   )$tail");
   $p->exec("CREATE TABLE IF NOT EXISTS login_attempts (id $id, ip VARCHAR(64), at INT)$tail");
+  // customer login codes (passwordless "My account": a 6-digit code is emailed, stored only as a hash)
+  $p->exec("CREATE TABLE IF NOT EXISTS customer_codes (
+    id $id, email VARCHAR(160), code_hash VARCHAR(255), expires INT, attempts INT DEFAULT 0, ip VARCHAR(64), created_at INT
+  )$tail");
+  try { $p->exec('CREATE INDEX idx_codes_email ON customer_codes (email)'); } catch (PDOException $e) {}
+  // newsletter / "notify me" sign-ups
+  $p->exec("CREATE TABLE IF NOT EXISTS subscribers (
+    id $id, email VARCHAR(160), source VARCHAR(40), created_at VARCHAR(20), unsubscribed INT DEFAULT 0
+  )$tail");
+  // marketing consent ticked at checkout (DPDP: only message customers who agreed)
+  try { $p->exec('ALTER TABLE orders ADD COLUMN marketing_ok INT DEFAULT 0'); } catch (PDOException $e) {}
   // admin-only products for custom / offline orders — never shown on the website
   $p->exec("CREATE TABLE IF NOT EXISTS custom_products (
     id $id, created_at VARCHAR(20), name VARCHAR(160), price INT DEFAULT 0, category VARCHAR(80) DEFAULT '',
@@ -133,7 +144,7 @@ function order_events(int $orderId): array {
 }
 
 /* $t = result of compute_order(); $c = customer fields */
-function order_create(array $t, array $c, string $note, string $source, ?string $rzpOrderId, string $payment = 'pending', string $method = ''): array {
+function order_create(array $t, array $c, string $note, string $source, ?string $rzpOrderId, string $payment = 'pending', string $method = '', bool $marketing = false): array {
   $pdo = db();
   $pdo->prepare('INSERT INTO orders (created_at, updated_at, source, payment_status, payment_method, stage, rzp_order_id,
       name, phone, email, address, city, pin, items, note, code, sub, disc, ship, wrap, total, admin_notes)
@@ -146,7 +157,7 @@ function order_create(array $t, array $c, string $note, string $source, ?string 
   ]);
   $id = (int)$pdo->lastInsertId();
   $no = 'TAP' . (1000 + $id);
-  $pdo->prepare('UPDATE orders SET order_no = ? WHERE id = ?')->execute([$no, $id]);
+  $pdo->prepare('UPDATE orders SET order_no = ?, marketing_ok = ? WHERE id = ?')->execute([$no, $marketing ? 1 : 0, $id]);
   add_event($id, 'created', $source === 'manual' ? 'Order added by hand' : 'Checkout started on the website');
   return order_get($id);
 }
@@ -284,7 +295,8 @@ function email_order_confirmation(array $o): void {
       . ($wa ? '<br><a href="' . e($wa) . '" style="display:inline-block;margin-top:10px;background:#111;color:#fff;padding:10px 16px;border-radius:999px;text-decoration:none">Send route on WhatsApp</a>' : '') . '</p>' : '')
     . email_items_table($o)
     . '<p style="margin-top:18px;font-size:14px"><b>Delivering to</b><br>' . e($o['name']) . '<br>' . nl2br(e($o['address'])) . ', ' . e($o['city']) . ' ' . e($o['pin']) . '<br>' . e($o['phone']) . '</p>'
-    . '<p style="font-size:14px;color:#555">We\'ll email you the tracking link as soon as your order ships.</p>';
+    . '<p style="font-size:14px;color:#555">We\'ll email you the tracking link as soon as your order ships. You can also follow your order any time in '
+    . '<a href="' . e(rtrim(cfg('site_url', ''), '/') . '/account.html') . '">My account</a> (log in with this email, no password needed).</p>';
   send_mail($o['email'], 'Order confirmed · ' . $o['order_no'], email_wrap('Thank you — your order is confirmed', $body));
 }
 

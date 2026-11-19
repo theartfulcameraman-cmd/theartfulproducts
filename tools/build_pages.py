@@ -90,7 +90,7 @@ PAGES = {
 </div></section>
 <section class="sec" style="padding-bottom:0"><div class="wrap"><div class="soon-band">
   <div id="soon"><span class="kick">More on the way</span><h2>New collections are coming soon</h2><p class="muted">We're designing new pieces beyond route keepsakes. Leave your email and you'll be the first to know.</p></div>
-  <form class="soon-form" onsubmit="event.preventDefault();this.innerHTML='&lt;p&gt;&lt;b&gt;Thanks! We will let you know.&lt;/b&gt;&lt;/p&gt;'"><input type="email" required placeholder="Your email" aria-label="Email"><button class="btn primary">Notify me</button></form>
+  <form class="soon-form" data-subscribe="coming-soon"><input type="email" name="email" required placeholder="Your email" aria-label="Email"><input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true"><button class="btn primary">Notify me</button></form>
 </div></div></section>
 <section class="sec"><div class="wrap"><div class="org-band">
   <div><span class="kick">For race &amp; event organisers</span><h2>Give every finisher their course to keep.</h2><p>Custom 3D course keepsakes, podium trophies and volunteer gifts, made in bulk and branded for your event.</p><a class="btn light" href="organisers.html">Request a quote</a></div>
@@ -215,6 +215,12 @@ PAGES = {
     <div class="actions full"><button class="btn primary" type="submit" value="whatsapp">Send on WhatsApp</button><button class="btn" type="submit" value="email">Send by email</button></div>
   </form>
 </div></section>"""),
+
+"account.html": ("account", "My account | The Artful Products", DESC, f"""
+<div class="wrap" style="padding-bottom:48px">
+  {crumb("My account")}
+  <div id="acct"></div>
+</div>"""),
 
 "faq.html": ("faq", "FAQ | The Artful Products", DESC, f"""
 <div class="wrap" style="padding-bottom:48px">
@@ -366,13 +372,13 @@ for name, spec in PAGES.items():
         base='<base href="/">\n' if name == "404.html" else "",
         ogtype=extra.get("ogtype", "website"), image=extra.get("image", SITE_URL + "/assets/img/og/default.png"),
         jsonld=extra.get("jsonld", jsonld(ORG) if name == "index.html" else ""), body_attr=extra.get("body_attr", ""))
-    if name in ("cart.html", "wishlist.html", "404.html"):
+    if name in ("cart.html", "wishlist.html", "404.html", "account.html"):
         html = html.replace('<meta name="description"', '<meta name="robots" content="noindex">\n<meta name="description"')
     html = _re.sub(r'((?:href|src)=")(assets/(?:css|js)/[^"?]+)"', _ver, html)
     (SITE / name).write_text(html, encoding="utf-8")
 print("wrote", len(PAGES), "pages")
 
-skip = {"cart.html", "wishlist.html", "404.html", "product.html"}
+skip = {"cart.html", "wishlist.html", "404.html", "product.html", "account.html"}
 urls = [SITE_URL + "/" + ("" if n == "index.html" else n) for n in PAGES if n not in skip]
 (SITE / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     + "".join(f"  <url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n", encoding="utf-8")

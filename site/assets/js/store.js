@@ -251,7 +251,7 @@
         </form>
         <div class="hicons">
           <a class="icon-btn only-d" href="organisers.html" aria-label="Find us at events">${icon.pin}</a>
-          <a class="icon-btn only-d" href="contact.html" aria-label="Account">${icon.user}</a>
+          <a class="icon-btn" href="account.html" aria-label="My account" title="My account and orders">${icon.user}</a>
           <a class="icon-btn" href="wishlist.html" aria-label="Wishlist">${icon.heart}<b class="dot" data-wish-count hidden>0</b></a>
           <button class="icon-btn" data-open="cart" aria-label="Open cart">${icon.bag}<b class="dot" data-cart-count hidden>0</b></button>
         </div>
@@ -288,7 +288,7 @@
       <div class="dr-body mnav">
         <p class="mnav-h">Shop</p><a href="shop.html">All products</a>${live.map(c => `<a href="shop.html?cat=${c.id}">${c.name}</a>`).join("")}
         ${isBig() ? `<p class="mnav-h">Shop by sport</p>${liveSports().map(s => `<a href="shop.html?sport=${s.id}">${s.name}</a>`).join("")}` : ""}
-        <p class="mnav-h">More</p><a href="organisers.html">For Organisers</a>${hasSale() ? `<a class="hot" href="shop.html?sale=1">On Sale</a>` : ""}<a href="wishlist.html">Wishlist</a><a href="faq.html">Help centre</a><a href="contact.html">Contact</a>
+        <p class="mnav-h">More</p><a href="organisers.html">For Organisers</a>${hasSale() ? `<a class="hot" href="shop.html?sale=1">On Sale</a>` : ""}<a href="account.html">My account &amp; orders</a><a href="wishlist.html">Wishlist</a><a href="faq.html">Help centre</a><a href="contact.html">Contact</a>
       </div>`;
     document.body.appendChild(m);
   }
@@ -410,7 +410,7 @@
         <div class="f-brand"><a class="logo" href="index.html"><img src="assets/img/logo.svg" alt="${S.name} — a unit of The Artful Company" width="378" height="62"></a>
           <p class="muted">${esc(S.tagline)} Designed and 3D-printed in ${esc(S.city)}.</p>
           <div class="f-soc"><a href="${S.social.instagram}" target="_blank" rel="noopener" aria-label="Instagram">${icon.ig}</a><a href="${S.social.youtube}" target="_blank" rel="noopener" aria-label="YouTube">${icon.yt}</a></div>
-          <form class="f-news" onsubmit="event.preventDefault();this.innerHTML='<p><b>Thanks — you\\'re on the list.</b></p>'"><input type="email" required placeholder="Your email" aria-label="Email for newsletter"><button class="btn primary">Subscribe</button></form></div>
+          <form class="f-news" data-subscribe="footer"><input type="email" name="email" required placeholder="Your email" aria-label="Email for newsletter"><input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true"><button class="btn primary">Subscribe</button></form></div>
         <div><h4>Shop</h4>${live.map(c => `<a href="shop.html?cat=${c.id}">${c.name}</a>`).join("")}${hasSale() ? `<a class="hot" href="shop.html?sale=1">On Sale</a>` : ""}</div>
         <div><h4>Help</h4><a href="faq.html">FAQ</a><a href="shipping.html">Shipping policy</a><a href="refunds.html">Cancellations &amp; refunds</a><a href="contact.html">Contact us</a></div>
         <div><h4>Company</h4><a href="about.html">About us</a><a href="organisers.html">For organisers</a><a href="privacy.html">Privacy policy</a><a href="terms.html">Terms &amp; conditions</a></div>
@@ -431,6 +431,15 @@
       $(".next", c)?.addEventListener("click", () => track.scrollBy({ left: step(), behavior: "smooth" }));
     });
   }
+
+  /* ---------------- newsletter sign-ups (footer, "coming soon" band) → api/subscribe.php ---------------- */
+  document.addEventListener("submit", e => {
+    const f = e.target.closest("form[data-subscribe]"); if (!f) return;
+    e.preventDefault();
+    const email = f.email.value.trim();
+    fetch("api/subscribe.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, source: f.dataset.subscribe, website: f.website?.value || "" }) }).catch(() => {});
+    f.innerHTML = `<p><b>Thanks, you're on the list.</b> We'll email you about new pieces and offers.</p>`;
+  });
 
   /* ---------------- global clicks ---------------- */
   document.addEventListener("click", e => {

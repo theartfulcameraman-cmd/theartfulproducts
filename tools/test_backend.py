@@ -147,6 +147,65 @@ s, b, _ = req("/admin/products.php", form={"csrf": token, "id": cpid, "name": "C
 check("retired product shown as Retired", "Retired" in b)
 s, b, _ = req("/admin/new-order.php"); check("retired product no longer offered", "Corporate Trek Trophy" not in b)
 
+print("\n8. Customer accounts (email code, no password)")
+def cust_opener():
+    return urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+def acct(op, data):
+    r = urllib.request.Request(BASE + "/api/account.php", data=json.dumps(data).encode(), headers={"Content-Type": "application/json"}, method="POST")
+    try:
+        with op.open(r) as resp: return resp.status, json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e: return e.code, json.loads(e.read().decode() or "{}")
+def latest_code(to):
+    for f in sorted(MAIL.glob("*.html"), reverse=True):
+        head = f.read_text(encoding="utf-8").splitlines()[0]
+        if f"To: {to}" in head and "login code" in head: return re.search(r"(\d{6})", head).group(1)
+alice = cust_opener()
+s, r = acct(alice, {"action": "me"}); check("not logged in at first", s == 401, (s, r))
+s, r = acct(alice, {"action": "request_code", "email": "Runner@Example.com"}); check("code requested", s == 200, r)
+code = latest_code("runner@example.com"); check("code emailed", bool(code), code)
+s, r = acct(alice, {"action": "verify_code", "email": "runner@example.com", "code": "000000" if code != "000000" else "111111"}); check("wrong code refused", s == 400, r)
+s, r = acct(alice, {"action": "verify_code", "email": "runner@example.com", "code": code})
+check("right code logs in", s == 200 and r.get("ok"), r)
+check("sees own paid orders", order["order_no"] in [o["order_no"] for o in r.get("orders", [])], [o["order_no"] for o in r.get("orders", [])])
+check("unpaid checkouts hidden", all(o["payment"] in ("paid", "cod", "refunded") for o in r.get("orders", [])))
+check("profile for checkout prefill", (r.get("profile") or {}).get("pin") == "411001", r.get("profile"))
+s, r = acct(alice, {"action": "verify_code", "email": "runner@example.com", "code": code}); check("code can't be reused", s == 400, r)
+bob = cust_opener()
+s, r = acct(bob, {"action": "request_code", "email": "bob@example.com"}); bcode = latest_code("bob@example.com")
+s, r = acct(bob, {"action": "verify_code", "email": "bob@example.com", "code": bcode})
+check("another customer sees none of runner's orders", s == 200 and r.get("orders") == [], r.get("orders"))
+s, r = acct(alice, {"action": "me"}); check("session remembered", s == 200 and r.get("email") == "runner@example.com", s)
+s, r = acct(alice, {"action": "logout"}); s, r = acct(alice, {"action": "me"}); check("logout works", s == 401, s)
+eve = cust_opener()
+codes = [acct(eve, {"action": "request_code", "email": "flood@example.com"})[0] for _ in range(4)]
+check("max 3 codes per 15 minutes", codes[:3] == [200, 200, 200] and codes[3] == 429, codes)
+
+print("\n9. Customers page: repeat buyers matched by phone OR email, consent, sign-ups")
+s, r = js("/api/create-order.php", {"items": [{"id": "trail-magnet", "qty": 1}], "customer": {**customer, "email": "consent@example.com", "phone": "9111111111"}, "marketing": True})
+cs = hmac.new(CFG["key_secret"].encode(), f"{r['id']}|pay_C1".encode(), hashlib.sha256).hexdigest()
+js("/api/verify-payment.php", {"razorpay_order_id": r["id"], "razorpay_payment_id": "pay_C1", "razorpay_signature": cs})
+s, r = js("/api/subscribe.php", {"email": "Fan@Example.com", "source": "footer"}); check("newsletter sign-up saved", s == 200 and r.get("saved"), r)
+s, r = js("/api/subscribe.php", {"email": "bot@example.com", "website": "spam"}); check("sign-up honeypot drops bots", s == 200 and "saved" not in r, r)
+s, b, _ = req("/admin/login.php")
+m = re.search(r'name="csrf" value="([^"]+)"', b)
+if m and "Admin login" in b: req("/admin/login.php", form={"csrf": m.group(1), "password": CFG["admin_password"]})   # (already logged in otherwise)
+def manual(email, phone, name):
+    s, b, _ = req("/admin/new-order.php"); t = re.search(r'name="csrf" value="([^"]+)"', b).group(1)
+    req("/admin/new-order.php", form={"csrf": t, "item[0][id]": "route-keychain", "item[0][qty]": "1", "name": name, "email": email, "phone": phone, "payment_status": "paid", "method": "UPI", "ship": "0", "disc": "0", "stage": "new"})
+manual("chain-a@example.com", "+91 98888 77777", "Chain One")     # A
+manual("chain-b@example.com", "9888877777", "Chain One")          # same phone as A (different format), new email
+manual("chain-b@example.com", "9000000001", "Chain One")          # same email as B, new phone → all three are one customer
+manual("", "9000000001", "Chain One")                             # phone only, matches C
+s, b, _ = req("/admin/customers.php?view=all&export=1")
+rows = list(__import__("csv").reader(b.lstrip("﻿").splitlines()))
+chain = [r for r in rows if "chain-a@example.com" in r[2]]
+check("4 orders linked via phone OR email = 1 customer", len(chain) == 1 and chain[0][4] == "4", chain)
+check("both emails shown for that customer", chain and "chain-b@example.com" in chain[0][2], chain)
+check("consent at checkout recorded", any("consent@example.com" in r[2] and r[8] == "Yes" for r in rows))
+check("no consent = No", any("runner@example.com" in r[2] and r[8] == "No" for r in rows))
+s, b, _ = req("/admin/customers.php?view=repeat"); check("repeat customers view lists the chain", "Chain One" in b and "Repeat" in b)
+s, b, _ = req("/admin/customers.php?view=subscribers"); check("newsletter sign-ups listed", "fan@example.com" in b)
+
 s, b, url = req("/admin/logout.php"); s, b, url = req("/admin/index.php"); check("logged out", "Admin login" in b)
 
 print(f"\n{ok} passed, {fail} failed")

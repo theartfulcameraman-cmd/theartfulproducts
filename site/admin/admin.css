@@ -108,6 +108,10 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--ink); }
 .itemrow2 .pick { display: grid; gap: 6px; }
 .itemrow2 [hidden] { display: none !important; }
 #subtotal { align-self: center; font-weight: 700; }
+.tr.cust { grid-template-columns: 1.2fr 1.6fr 90px 90px 1.1fr 80px 190px; }
+.tr.cust-sub { grid-template-columns: 2fr 1fr 1fr; }
+.tr.cust .actions { justify-content: flex-end; }
+@media (max-width: 900px) { .tr.cust, .tr.cust-sub { grid-template-columns: 1fr 1fr; } .tr.cust .actions { justify-content: flex-start; grid-column: 1 / -1; } }
 code { background: var(--soft); padding: 1px 6px; border-radius: 6px; font-size: .85em; }
 .timeline { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--line); }
 .timeline li { position: relative; padding: 0 0 14px 12px; }

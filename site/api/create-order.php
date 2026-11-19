@@ -57,7 +57,7 @@ if (cfg('mock_razorpay')) {
 
 $orderNo = null;
 if (db_configured()) {
-  try { $orderNo = order_create($t, $c, $note, 'website', $order['id'])['order_no']; }
+  try { $orderNo = order_create($t, $c, $note, 'website', $order['id'], 'pending', '', !empty($body['marketing']))['order_no']; }
   catch (Throwable $e) { error_log('Order save failed: ' . $e->getMessage()); }   // payment still goes ahead; Razorpay keeps the details
 }
 
