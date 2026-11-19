@@ -1,7 +1,7 @@
 # The Artful Products — Apache settings for MilesWeb (cPanel)
 
 Options -Indexes
-DirectoryIndex index.html
+DirectoryIndex index.html index.php
 ErrorDocument 404 /404.html
 
 <IfModule mod_rewrite.c>
