@@ -18,7 +18,7 @@ Full technical guide: `README.md`.
   (the same account hosts theartfulcompany.com in `public_html`, which the deploy must never touch).
 
 ## Not done yet / waiting on Soham
-- [x] MilesWeb GitHub deploy should use branch **`live`** (website only); publish with `python tools/publish.py`
+- [ ] Deploy = GitHub Actions FTP upload of `site/` (`.github/workflows/deploy.yml`) on push to main. Needs: FTP account limited to the theartfulproducts.com folder + 3 GitHub secrets. Hosting is mPanel, not cPanel. (`live` branch + MilesWeb GitHub app no longer used)
 - [x] `.cpanel.yml` (cPanel Git Version Control route, if ever used) deploys to `$HOME/theartfulproducts.com/` (its document root). `public_html` is theartfulcompany.com/.in — never deploy there
 - [ ] MilesWeb one-time setup (README → "Order system → One-time setup"): MySQL database, `orders@` mailbox,
       `/home/<user>/artful-config.php` with Razorpay keys + DB + admin password, Razorpay webhook

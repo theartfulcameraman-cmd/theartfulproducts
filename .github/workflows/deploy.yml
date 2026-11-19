@@ -1,0 +1,57 @@
+# Deploys the website (the site/ folder) to theartfulproducts.com on MilesWeb by FTP.
+#
+# Runs when changes to site/ are pushed to main, or by hand (GitHub → Actions → Deploy website → Run workflow).
+# Uses an FTP account that can ONLY see the theartfulproducts.com folder, so it can never touch
+# theartfulcompany.com / theartfulcompany.in in public_html.
+#
+# Needs three repository secrets (GitHub → Settings → Secrets and variables → Actions):
+#   FTP_SERVER    e.g. ftp.theartfulproducts.com  (from mPanel → FTP Accounts)
+#   FTP_USERNAME  the FTP account limited to the theartfulproducts.com folder
+#   FTP_PASSWORD  its password
+# Until they are added, the workflow skips the upload and does nothing.
+name: Deploy website
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", ".github/workflows/deploy.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-website
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+    steps:
+      - name: Check FTP settings
+        if: env.FTP_SERVER == ''
+        run: echo "::warning::FTP secrets are not set yet - nothing was uploaded. See README > Deploying."
+
+      - name: Get the website files
+        if: env.FTP_SERVER != ''
+        uses: actions/checkout@v4
+
+      - name: Safety check
+        if: env.FTP_SERVER != ''
+        run: |
+          test -f site/index.html || { echo "site/index.html missing - stopping"; exit 1; }
+          echo "Uploading $(find site -type f | wc -l) files from site/"
+
+      - name: Upload to theartfulproducts.com
+        if: env.FTP_SERVER != ''
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./site/
+          server-dir: ./
+          exclude: |
+            **/.git*
+            **/.git*/**

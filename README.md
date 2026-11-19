@@ -96,15 +96,19 @@ changed in the browser. After payment, `api/verify-payment.php` checks Razorpay'
 so the server's price list matches the website.
 
 
-### Publishing with MilesWeb's GitHub deploy (what's actually connected)
-MilesWeb → *GitHub* deploys a branch automatically on every push. The repository has two branches:
-- **`main`**: everything (website in `site/`, tools, notes). Never deployed.
-- **`live`**: only the website (the contents of `site/`, `index.html` at the top). **This is the branch MilesWeb deploys**
-  to theartfulproducts.com.
+### Deploying (GitHub Actions → FTP → theartfulproducts.com)
+The hosting is MilesWeb **mPanel** (not cPanel; `.cpanel.yml` is unused there). Deploys work like this:
+1. Changes are committed on `main` and pushed (`python tools/publish.py`).
+2. GitHub Actions (`.github/workflows/deploy.yml`) uploads the `site/` folder by FTP into theartfulproducts.com's
+   own folder. You can also run it by hand: GitHub → *Actions* → *Deploy website* → *Run workflow*.
+3. It uses an **FTP account limited to the theartfulproducts.com folder**, so it can never touch
+   theartfulcompany.com / theartfulcompany.in in `public_html`.
 
-To publish changes: commit them on `main`, then run `python tools/publish.py`. It pushes `main`, rebuilds
-`live` from `site/`, checks no private files are included, and pushes `live`, which MilesWeb then puts live.
-(`python tools/publish.py --dry-run` shows what would happen without pushing.)
+One-time setup:
+- mPanel → *FTP Accounts* → create an account whose directory is **only** the theartfulproducts.com folder.
+- GitHub → repository → *Settings → Secrets and variables → Actions* → add `FTP_SERVER`, `FTP_USERNAME`,
+  `FTP_PASSWORD`. (Typed into GitHub only, never into chat or files.) Until they exist, the workflow does nothing.
+- The earlier MilesWeb "GitHub deploy" website (`theartful-nov-19-2026-1355`) and the `live` branch are no longer used.
 
 ## Order system (admin dashboard)
 

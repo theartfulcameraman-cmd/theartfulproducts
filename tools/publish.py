@@ -1,11 +1,10 @@
-"""Publish the website: push `main` (working copy) and update `live` (website only).
+"""Publish the website: push `main` to GitHub.
 
-MilesWeb's GitHub deploy watches the `live` branch and puts it live on every push, so:
-  - `main` = everything (site/, tools/, README, notes)  → never deployed
-  - `live` = only the contents of site/, with index.html at the top → deployed to theartfulproducts.com
+GitHub Actions (.github/workflows/deploy.yml) then uploads the site/ folder by FTP into
+theartfulproducts.com's own folder on MilesWeb. Only changes inside site/ trigger an upload.
 
 Run from the project folder after committing:   python tools/publish.py
-Add --dry-run to see what would happen without pushing."""
+Add --dry-run to check without pushing."""
 import subprocess, sys
 
 def git(*args, capture=True):
@@ -20,17 +19,14 @@ if git("rev-parse", "--abbrev-ref", "HEAD") != "main":
 if git("status", "--porcelain"):
     sys.exit("You have uncommitted changes. Commit them first, then publish.")
 
-sha = git("subtree", "split", "--prefix=site", "main")
-files = git("ls-tree", "-r", "--name-only", sha).splitlines()
-leaks = [f for f in files if f.lower().startswith(("tools/", "readme", "handover", "_incoming")) or f.endswith(("artful-config.php", ".sqlite", ".pdf"))]
-if "index.html" not in files or leaks:
-    sys.exit(f"Refusing to publish: live branch would be wrong (index.html present: {'index.html' in files}, private files: {leaks})")
+files = git("ls-tree", "-r", "--name-only", "HEAD", "site").splitlines()
+leaks = [f for f in files if f.endswith(("artful-config.php", ".sqlite", ".pdf")) or "/_incoming/" in f]
+if "site/index.html" not in files or leaks:
+    sys.exit(f"Refusing to publish: site/index.html present: {'site/index.html' in files}; private files in site/: {leaks}")
 
-print(f"main  -> {git('rev-parse', '--short', 'main')}")
-print(f"live  -> {sha[:7]}  ({len(files)} website files)")
+ahead = git("rev-list", "--count", "origin/main..main") if git("ls-remote", "--heads", "origin", "main") else "?"
+print(f"main -> {git('rev-parse', '--short', 'main')}  ({len(files)} website files, {ahead} new commit(s))")
 if dry:
     sys.exit("Dry run: nothing pushed.")
 git("push", "origin", "main", capture=False)
-git("branch", "-f", "live", sha)
-git("push", "origin", "live", capture=False)
-print("Published. MilesWeb deploys the live branch automatically; check theartfulproducts.com in a minute.")
+print("Pushed. GitHub Actions uploads site/ to theartfulproducts.com: watch it under the repo's Actions tab.")
