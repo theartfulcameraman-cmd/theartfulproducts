@@ -26,8 +26,8 @@ leaks = [f for f in files if f.lower().startswith(("tools/", "readme", "handover
 if "index.html" not in files or leaks:
     sys.exit(f"Refusing to publish: live branch would be wrong (index.html present: {'index.html' in files}, private files: {leaks})")
 
-print(f"main  → {git('rev-parse', '--short', 'main')}")
-print(f"live  → {sha[:7]}  ({len(files)} website files)")
+print(f"main  -> {git('rev-parse', '--short', 'main')}")
+print(f"live  -> {sha[:7]}  ({len(files)} website files)")
 if dry:
     sys.exit("Dry run: nothing pushed.")
 git("push", "origin", "main", capture=False)
