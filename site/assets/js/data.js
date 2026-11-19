@@ -33,6 +33,12 @@ window.SITE = {
     "Organising an event? Finisher gifts in bulk"
   ],
 
+  // First slide of the home-page banner: a looping video. Set active:false to hide it.
+  heroFeature: { active: true, video: "assets/video/frames-light.mp4",
+    kicker: "Featured · The Great Himalayan 2026", title: "Podium awards made from the route",
+    text: "Medal, race details and the 600 km route in 3D terrain, for every podium finisher.",
+    cta: "See the event", href: "organisers.html#featured" },
+
   // Home-page countdown strip — switch on when you run a real offer.
   flashSale: { active: false, title: "Finisher Week", text: "10% off route keepsakes this week.", code: "FINISHER10", percent: 10, ends: "2026-12-31T23:59:59+05:30" },
 
@@ -109,8 +115,11 @@ window.PRODUCTS = [
     price: 3499,                         // PLACEHOLDER price
     best: true, featured: true, badge: "Made to order", personal: true,   // featured = the home-page spotlight
     sports: ["running", "cycling", "trekking"], colours: [COLOURS.charcoal, COLOURS.oak, COLOURS.white],
+    images: ["assets/img/products/terrain-frame-1.jpg", "assets/img/products/terrain-frame-2.jpg", "assets/img/products/terrain-frame-3.jpg",
+             "assets/img/products/terrain-frame-4.jpg", "assets/img/products/terrain-frame-5.jpg"],
+    video: "assets/video/winner-frame.mp4",   // shown as the last item in the product gallery
     short: "Your route in 3D terrain, framed next to your finisher medal.",
-    desc: "Our signature piece. The route you completed is rebuilt in 3D terrain and set in a deep frame with space for your finisher medal and a plate with your name, time and event.",
+    desc: "Our signature piece. Your finisher medal is mounted on a printed race panel with your event, category, distance, date and elevation, and the route you completed is rebuilt below it in 3D terrain. Pictured: the podium frames we made for The Great Himalayan 2026.",
     specs: ["Deep shadow-box frame", "3D-printed terrain insert", "Medal mount + name plate", "Dispatch in 7–10 working days"] }
 ];
 

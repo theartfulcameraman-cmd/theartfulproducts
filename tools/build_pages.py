@@ -57,6 +57,17 @@ PAGES = {
   <div class="tab-body"></div>
 </div></section>
 <section style="padding:0 0 8px" id="flash"></section>
+<section class="sec" id="event-sec" style="padding-top:0"><div class="wrap"><div class="event-strip">
+  <div class="es-txt"><span class="kick">As awarded at</span><h2>The Great Himalayan 2026</h2>
+    <p class="muted">Podium frames with the 600&nbsp;km route in 3D terrain, made for Inspire India&rsquo;s world&rsquo;s highest-altitude ultra cycling race.</p>
+    <a class="btn primary" href="organisers.html#featured">See the event</a></div>
+  <div class="es-photos">
+    <img src="assets/img/products/terrain-frame-5.jpg" alt="Winner holding his terrain award frame" loading="lazy">
+    <img src="assets/img/events/great-himalayan/ad104601.jpg" alt="Podium finisher with his frame" loading="lazy">
+    <img src="assets/img/products/terrain-frame-3.jpg" alt="Close-up of the 3D terrain and route" loading="lazy">
+  </div>
+</div></div></section>
+
 <section class="sec" id="catgrid-sec"><div class="wrap">
   <div class="sec-head"><h2>Shop by category</h2><a class="link-u" href="shop.html">View all products &rarr;</a></div>
   <div class="catgrid" id="catgrid"></div>
@@ -134,9 +145,37 @@ PAGES = {
     <div><span class="kick">For race &amp; event organisers</span><h1>Awards your finishers will actually keep.</h1>
       <p class="muted">We turn your course into 3D-printed finisher gifts, podium trophies and volunteer keepsakes, branded for your event and delivered in bulk. We can also run a stall at your expo for personalised orders.</p>
       <div class="row" style="flex-wrap:wrap"><a class="btn primary" href="#enquire">Request a quote</a><a class="btn" href="https://wa.me/" data-wa>WhatsApp us</a></div></div>
-    <div class="art" id="org-art"></div>
+    <div class="art photo" id="org-art"><img src="assets/img/events/great-himalayan/podium-frames.jpg" alt="Winner, 2nd and 3rd place terrain award frames made for The Great Himalayan 2026" width="1600" height="1067"></div>
   </div>
 </div>
+<section class="sec" id="featured" style="padding-top:8px"><div class="wrap">
+  <div class="feat">
+    <div class="feat-txt">
+      <span class="kick">Featured event</span>
+      <h2>The Great Himalayan 2026</h2>
+      <p class="muted">Podium awards for the 8th edition of The Great Himalayan by Inspire India, the world&rsquo;s highest-altitude ultra cycling race, held on 22 August 2026.</p>
+      <p>Every podium finisher took home a frame with their medal, a race panel showing their place, category, distance, date and elevation, and the 600&nbsp;km route rebuilt below it in 3D terrain.</p>
+      <ul class="feat-facts">
+        <li><b>600 km</b><span>route in 3D terrain</span></li>
+        <li><b>Podium</b><span>Winner, 2nd &amp; 3rd per category</span></li>
+        <li><b>Made in Pune</b><span>designed, printed, framed</span></li>
+      </ul>
+      <a class="btn primary" href="#enquire">Get frames like these for your event</a>
+    </div>
+    <div class="feat-vid"><video src="assets/video/winner-frame.mp4" poster="assets/video/winner-frame.jpg" autoplay muted loop playsinline aria-label="A Winner frame from The Great Himalayan, held in hand"></video></div>
+  </div>
+  <h3 class="feat-gal-h">On the podium</h3>
+  <div class="feat-gal">
+    <a href="assets/img/events/great-himalayan/ad104601.jpg" target="_blank" rel="noopener"><img src="assets/img/events/great-himalayan/ad104601.jpg" alt="Rider with their podium frame at The Great Himalayan 2026" loading="lazy" width="1200" height="800"></a>
+    <a href="assets/img/events/great-himalayan/ad104655.jpg" target="_blank" rel="noopener"><img src="assets/img/events/great-himalayan/ad104655.jpg" alt="Rider with their podium frame at The Great Himalayan 2026" loading="lazy" width="1200" height="800"></a>
+    <a href="assets/img/events/great-himalayan/ad104671.jpg" target="_blank" rel="noopener"><img src="assets/img/events/great-himalayan/ad104671.jpg" alt="Rider with their podium frame at The Great Himalayan 2026" loading="lazy" width="1200" height="800"></a>
+    <a href="assets/img/events/great-himalayan/ad104680.jpg" target="_blank" rel="noopener"><img src="assets/img/events/great-himalayan/ad104680.jpg" alt="Rider with their podium frame at The Great Himalayan 2026" loading="lazy" width="1200" height="800"></a>
+    <a href="assets/img/events/great-himalayan/ad104695.jpg" target="_blank" rel="noopener"><img src="assets/img/events/great-himalayan/ad104695.jpg" alt="Rider with their podium frame at The Great Himalayan 2026" loading="lazy" width="1200" height="800"></a>
+    <a href="assets/img/events/great-himalayan/ad104699.jpg" target="_blank" rel="noopener"><img src="assets/img/events/great-himalayan/ad104699.jpg" alt="Rider with their podium frame at The Great Himalayan 2026" loading="lazy" width="1200" height="800"></a>
+    <a href="assets/img/events/great-himalayan/ad104619.jpg" target="_blank" rel="noopener"><img src="assets/img/events/great-himalayan/ad104619.jpg" alt="Rider with their podium frame at The Great Himalayan 2026" loading="lazy" width="1200" height="800"></a>
+    <a href="assets/img/events/great-himalayan/ad104594.jpg" target="_blank" rel="noopener"><img src="assets/img/events/great-himalayan/ad104594.jpg" alt="Rider with their podium frame at The Great Himalayan 2026" loading="lazy" width="1200" height="800"></a>
+  </div>
+</div></section>
 <section class="sec" style="padding-top:8px"><div class="wrap">
   <div class="sec-head"><h2>What we make for events</h2></div>
   <div class="offer">

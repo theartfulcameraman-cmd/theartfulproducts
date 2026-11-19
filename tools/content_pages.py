@@ -128,7 +128,7 @@ ABOUT = f"""
       <p class="muted">The Artful Products is the product studio of The Artful Company, a creative agency in Pune. We design and 3D-print keepsakes made from the routes people ride, run and trek: the climb you suffered up, the loop you finally finished, the trail that changed you.</p>
       <div class="row" style="flex-wrap:wrap"><a class="btn primary" href="shop.html">Shop the collection</a><a class="btn" href="organisers.html">For organisers</a></div>
     </div>
-    <div class="art about-photo" aria-label="Photo placeholder"><span>Studio / founder photo<br><small>PLACEHOLDER</small></span></div>
+    <div class="art photo"><img src="assets/img/about-frames.jpg" alt="Terrain award frames made for The Great Himalayan 2026" width="1400" height="1049"></div>
   </div>
 </div>
 <section class="sec" style="padding-top:8px"><div class="wrap about-story">

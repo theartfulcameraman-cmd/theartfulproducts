@@ -35,9 +35,12 @@
       return { k: c.name, h: p.name, p: p.short, cta: `Shop ${c.name}`, href: `shop.html?cat=${c.id}`, art: [p.art, p.colours?.[0]?.hex || "#2B2A28"], prod: p, bg: bgs[i] };
     });
     slides.push({ k: "For organisers", h: "Finisher gifts in bulk", p: "Course-map keepsakes for every finisher, branded for your event.", cta: "Get a quote", href: "organisers.html", art: ["trophy", "#5A3E2B"], bg: bgs[3] });
+    // optional video slide first (SITE.heroFeature in data.js)
+    const hf = S.heroFeature;
+    if (hf?.active && hf.video) slides.unshift({ k: hf.kicker, h: hf.title, p: hf.text, cta: hf.cta, href: hf.href, video: hf.video, bg: "#111" });
     $("#hero").innerHTML = `<div class="slides">${slides.map((s, i) => `
-        <div class="slide ${i ? "" : "on"}" style="--bg:${s.bg}" aria-hidden="${i ? "true" : "false"}">
-          <div class="slide-art">${s.prod?.images?.length ? img(s.prod) : art(s.art[0], s.art[1], 40 + i, 0, s.bg)}</div>
+        <div class="slide ${i ? "" : "on"} ${s.video ? "vid" : ""}" style="--bg:${s.bg}" aria-hidden="${i ? "true" : "false"}">
+          <div class="slide-art">${s.video ? `<video src="${esc(s.video)}" poster="${esc(s.video.replace(/\.mp4$/, ".jpg"))}" autoplay muted loop playsinline aria-hidden="true"></video>` : s.prod?.images?.length ? img(s.prod) : art(s.art[0], s.art[1], 40 + i, 0, s.bg)}</div>
           <div class="slide-txt"><span class="kick">${esc(s.k)}</span><h2>${esc(s.h)}</h2><p>${esc(s.p)}</p><a class="btn light" href="${s.href}" tabindex="${i ? -1 : 0}">${esc(s.cta)}</a></div>
         </div>`).join("")}</div>
       ${slides.length > 1 ? `<div class="sl-ctrl"><button class="prev" aria-label="Previous slide">${T().icon.left}</button>${slides.map((_, i) => `<button class="d ${i ? "" : "on"}" data-i="${i}" aria-label="Slide ${i + 1}"></button>`).join("")}<button class="next" aria-label="Next slide">${T().icon.right}</button></div>` : ""}`;
@@ -208,11 +211,16 @@
     let hex = p.colours?.[0]?.hex, view = 0;
     const [d0, d1] = S.dispatchDays, add = n => { const d = new Date(); let k = 0; while (k < n) { d.setDate(d.getDate() + 1); if (d.getDay() % 6) k++; } return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" }); };
     const lowStock = p.status === "live" && p.stock && p.stock <= 15;
-    $("#pdp").innerHTML = `${crumbs([["Home", "index.html"], [c.name, `shop.html?cat=${c.id}`], [p.name]])}
+    // gallery: product photos (or placeholder drawings), plus the product video as the last item if there is one
+    const nImg = p.images?.length || 4, nViews = nImg + (p.video ? 1 : 0), isVid = i => !!p.video && i === nImg;
+    const poster = () => p.video.replace(/\.mp4$/, ".jpg");
+    const slot = i => isVid(i) ? `<video src="${esc(p.video)}" poster="${esc(poster())}" autoplay muted loop playsinline aria-label="${esc(p.name)} video"></video>` : img(p, i, hex);
+    const thumb = i => isVid(i) ? `<span class="vth"><img src="${esc(poster())}" alt="" loading="lazy"><b aria-hidden="true">▶</b></span>` : img(p, i, hex);
+    $("#pdp").innerHTML =`${crumbs([["Home", "index.html"], [c.name, `shop.html?cat=${c.id}`], [p.name]])}
       <div class="pdp">
         <div class="gal">
-          <div class="thumbs" role="tablist">${[...Array(p.images?.length || 4).keys()].map(i => `<button class="th ${i ? "" : "on"}" data-v="${i}" aria-label="Image ${i + 1}">${img(p, i, hex)}</button>`).join("")}</div>
-          <div class="main" id="main" tabindex="0" aria-label="Product image — hover to zoom">${img(p, 0, hex)}</div>
+          <div class="thumbs" role="tablist">${[...Array(nViews).keys()].map(i => `<button class="th ${i ? "" : "on"}" data-v="${i}" aria-label="${isVid(i) ? "Video" : "Image " + (i + 1)}">${thumb(i)}</button>`).join("")}</div>
+          <div class="main" id="main" tabindex="0" aria-label="Product image — hover to zoom">${slot(0)}</div>
         </div>
         <div class="pinfo-l">
           <a class="pcat" href="shop.html?cat=${c.id}">${esc(c.name)}</a>
@@ -235,9 +243,9 @@
 
     // gallery + zoom
     const main = $("#main");
-    const show = () => { main.innerHTML = img(p, view, hex); $$(".th").forEach((t, i) => { t.innerHTML = img(p, i, hex); t.classList.toggle("on", i === view); }); };
+    const show = () => { main.innerHTML = slot(view); main.classList.toggle("is-video", isVid(view)); $$(".th").forEach((t, i) => { t.innerHTML = thumb(i); t.classList.toggle("on", i === view); }); };
     $(".thumbs").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b) { view = +b.dataset.v; show(); } });
-    main.addEventListener("mousemove", e => { const r = main.getBoundingClientRect(); main.style.setProperty("--zx", ((e.clientX - r.left) / r.width * 100) + "%"); main.style.setProperty("--zy", ((e.clientY - r.top) / r.height * 100) + "%"); main.classList.add("zoom"); });
+    main.addEventListener("mousemove", e => { if (isVid(view)) return; const r = main.getBoundingClientRect(); main.style.setProperty("--zx", ((e.clientX - r.left) / r.width * 100) + "%"); main.style.setProperty("--zy", ((e.clientY - r.top) / r.height * 100) + "%"); main.classList.add("zoom"); });
     main.addEventListener("mouseleave", () => main.classList.remove("zoom"));
     document.addEventListener("colour:change", e => { if (e.detail.id === p.id && e.detail.hex !== hex) { hex = e.detail.hex; show(); } });
     wireBuyBox($("#pdp"), p);
@@ -393,7 +401,7 @@
   /* ================= ORGANISERS ================= */
   function org() {
     const { $, art, byId, esc } = T();
-    $("#org-art").innerHTML = art("trophy", "#5A3E2B", 12, 0, "#E9E3D8");
+    if (!$("#org-art").children.length) $("#org-art").innerHTML = art("trophy", "#5A3E2B", 12, 0, "#E9E3D8");
     document.querySelectorAll("[data-wa]").forEach(a => { a.href = `https://wa.me/${S.whatsapp}?text=${encodeURIComponent("Hi! I'd like a quote for my event.")}`; a.target = "_blank"; a.rel = "noopener"; });
     const pre = T().param("product"); if (pre) { const b = $(`input[name="want"][value="${pre}"]`); if (b) b.checked = true; }
     $("#org-form").addEventListener("submit", e => {

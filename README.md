@@ -58,11 +58,23 @@ WhatsApp/Instagram, Google product data, and a sitemap entry.
 ## Going live on MilesWeb (cPanel + GitHub, with Razorpay payments)
 
 **How updates flow:** edit here (with Claude) → push to GitHub → cPanel → Git Version Control →
-**Update from Remote**, then **Deploy HEAD Commit**. `.cpanel.yml` copies the `site/` folder into `public_html`.
-Nobody edits files on the server directly.
+**Update from Remote**, then **Deploy HEAD Commit**. `.cpanel.yml` copies the `site/` folder into
+**theartfulproducts.com's own folder only**. Nobody edits files on the server directly.
+
+**This hosting account also runs theartfulcompany.com** (its files are in `public_html`). To keep the two apart:
+- In cPanel → *Domains*, theartfulproducts.com should have its **own document root outside `public_html`**,
+  e.g. `/home/<user>/theartfulproducts.com`. (A folder inside `public_html` also works, but then
+  theartfulcompany.com's `.htaccess` rules can leak into this site.)
+- On this account it is `theartfulproducts.com` (i.e. `/home/<user>/theartfulproducts.com`), already set in
+  `.cpanel.yml`. The deploy stops (copying nothing) if that folder is missing or the target is inside
+  `public_html`, so it can never overwrite theartfulcompany.com / theartfulcompany.in.
+- The Git repository's *clone path* (e.g. `/home/<user>/repositories/theartfulproducts`) is a separate,
+  private folder; it is not the website folder.
+- `artful-config.php` goes in `/home/<user>/` (never inside `public_html`); the site finds it there
+  whichever folder layout is used.
 
 One-time setup:
-1. In `.cpanel.yml`, `CPANEL_USER` is replaced with your cPanel username (Claude does this).
+1. `.cpanel.yml` deploys to `$HOME/theartfulproducts.com/` — theartfulproducts.com's document root (already set).
 2. In Razorpay → Account & Settings → API Keys, generate a **test** key pair.
 3. In cPanel → File Manager, create the file `/home/<your-cpanel-user>/artful-config.php`
    (**outside** `public_html`, so it can never be downloaded) containing:

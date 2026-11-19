@@ -14,10 +14,11 @@ Full technical guide: `README.md`.
 - **Admin** (`/admin`): orders dashboard, order detail (stages, tracking, WhatsApp templates, timeline),
   manual orders, **custom products** (admin-only, never on the website), enquiries, CSV export, emails.
 - **Hosting**: MilesWeb (cPanel). GitHub repo `theartfulcameraman-cmd/theartfulproducts` is connected in
-  cPanel → Git Version Control. `.cpanel.yml` copies `site/` → `public_html`.
+  cPanel → Git Version Control. `.cpanel.yml` copies `site/` → theartfulproducts.com's own document root
+  (the same account hosts theartfulcompany.com in `public_html`, which the deploy must never touch).
 
 ## Not done yet / waiting on Soham
-- [ ] `.cpanel.yml`: replace `CPANEL_USER` with the cPanel username (from the repo path `/home/<user>/…`)
+- [x] `.cpanel.yml` deploys to `$HOME/theartfulproducts.com/` (its document root). `public_html` is theartfulcompany.com/.in — never deploy there
 - [ ] MilesWeb one-time setup (README → "Order system → One-time setup"): MySQL database, `orders@` mailbox,
       `/home/<user>/artful-config.php` with Razorpay keys + DB + admin password, Razorpay webhook
 - [ ] Razorpay account + test keys → put Key ID in `site/assets/js/data.js` → `razorpayKey`

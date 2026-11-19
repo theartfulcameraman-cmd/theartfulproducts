@@ -12,3 +12,6 @@ __pycache__/
 # printouts and local notes (not part of the website)
 *.pdf
 LAUNCH-CHECKLIST.md
+
+# raw photos/videos received from Soham (originals; web versions go in site/assets/img)
+_incoming/

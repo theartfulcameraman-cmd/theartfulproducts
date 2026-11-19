@@ -1,8 +1,15 @@
 ---
 # cPanel → Git Version Control → "Deploy HEAD Commit" runs these steps.
-# It copies the website (the site/ folder) into public_html.
-# CPANEL_USER is filled in once the cPanel username is known.
+# It copies the website (the site/ folder) into theartfulproducts.com's own folder ONLY:
+#   Document Root (cPanel → Domains) = theartfulproducts.com  →  $HOME/theartfulproducts.com
+#
+# IMPORTANT: this account also hosts theartfulcompany.com and theartfulcompany.in, whose files
+# live in public_html. The checks below stop the deploy (copying nothing) if the target is
+# public_html or if the theartfulproducts.com folder doesn't exist.
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/CPANEL_USER/public_html/
-    - /bin/cp -R site/. $DEPLOYPATH
+    - export DEPLOYPATH="$HOME/theartfulproducts.com/"
+    - if [ -z "$HOME" ] || [ "${DEPLOYPATH#/home}" = "$DEPLOYPATH" ]; then echo "Home folder not found - nothing copied"; exit 1; fi
+    - case "$DEPLOYPATH" in *public_html*) echo "Refusing to deploy into public_html - nothing copied"; exit 1;; esac
+    - if [ ! -d "$DEPLOYPATH" ]; then echo "$DEPLOYPATH does not exist - nothing copied"; exit 1; fi
+    - /bin/cp -R site/. "$DEPLOYPATH"
