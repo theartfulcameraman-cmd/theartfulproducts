@@ -7,6 +7,11 @@
 ------------------------------------------------------------------- */
 if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === basename(__FILE__)) { http_response_code(404); exit; }
 
+/* PHP 7.4 compatibility (the host may still run 7.4): PHP 8 string helpers */
+if (!function_exists('str_starts_with')) { function str_starts_with(string $h, string $n): bool { return $n === '' || strncmp($h, $n, strlen($n)) === 0; } }
+if (!function_exists('str_ends_with')) { function str_ends_with(string $h, string $n): bool { return $n === '' || substr($h, -strlen($n)) === $n; } }
+if (!function_exists('str_contains')) { function str_contains(string $h, string $n): bool { return $n === '' || strpos($h, $n) !== false; } }
+
 function send_json(int $status, array $body): void {
   http_response_code($status);
   header('Content-Type: application/json');
