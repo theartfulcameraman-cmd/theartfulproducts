@@ -382,5 +382,5 @@ skip = {"cart.html", "wishlist.html", "404.html", "product.html", "account.html"
 urls = [SITE_URL + "/" + ("" if n == "index.html" else n) for n in PAGES if n not in skip]
 (SITE / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     + "".join(f"  <url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n", encoding="utf-8", newline="\n")
-(SITE / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /cart.html\nDisallow: /wishlist.html\nDisallow: /admin/\nDisallow: /api/\n\nSitemap: {SITE_URL}/sitemap.xml\n", encoding="utf-8", newline="\n")
+(SITE / "robots.txt").write_text(f"User-agent: *\nAllow: /\nDisallow: /cart.html\nDisallow: /wishlist.html\nDisallow: /admin/\nDisallow: /api/\nDisallow: /account.html\nDisallow: /social/\n\nSitemap: {SITE_URL}/sitemap.xml\n", encoding="utf-8", newline="\n")
 print("wrote sitemap.xml with", len(urls), "pages, and robots.txt")

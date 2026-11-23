@@ -4,5 +4,7 @@ Disallow: /cart.html
 Disallow: /wishlist.html
 Disallow: /admin/
 Disallow: /api/
+Disallow: /account.html
+Disallow: /social/
 
 Sitemap: https://theartfulproducts.com/sitemap.xml

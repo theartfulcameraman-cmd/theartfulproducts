@@ -1,0 +1,53 @@
+# Publishes due posts from social/queue.json to Instagram, every 15 minutes (free).
+# Needs the repository secret IG_PAGE_TOKEN (see social/README.md). Without it, it does nothing.
+# Run it by hand: GitHub → Actions → Instagram posts → Run workflow (tick "dry run" to only preview).
+name: Instagram posts
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only show what would be posted"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write          # to record published posts in social/posted.json
+
+concurrency:
+  group: instagram-posts
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check the queue
+        run: |
+          pip install --quiet pillow
+          python tools/ig_publish.py --check || true
+
+      - name: Publish due posts
+        env:
+          IG_PAGE_TOKEN: ${{ secrets.IG_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: python tools/ig_publish.py ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: Record published posts
+        run: |
+          if git diff --quiet -- social/posted.json; then echo "Nothing to record."; exit 0; fi
+          git config user.name "artful-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add social/posted.json
+          git commit -m "Instagram: record published posts"
+          for i in 1 2 3; do git pull --rebase --quiet && git push && exit 0; sleep 5; done
+          exit 1

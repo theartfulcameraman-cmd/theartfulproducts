@@ -1,0 +1,10 @@
+{
+  "_help": [
+    "Instagram posting queue. GitHub publishes each post at its time (India time), within ~15 minutes.",
+    "Media files live in site/social/ (they must be live on theartfulproducts.com before the post time).",
+    "type: image (1 file) | carousel (2-10 files, images and/or videos) | reel (1 .mp4, 9:16, 3s-15min).",
+    "Set \"hold\": true to keep a post in the queue without publishing it.",
+    "Published posts are recorded in social/posted.json - never remove a post from here once published."
+  ],
+  "posts": []
+}

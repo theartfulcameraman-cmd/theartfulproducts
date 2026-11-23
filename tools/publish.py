@@ -28,5 +28,7 @@ ahead = git("rev-list", "--count", "origin/main..main") if git("ls-remote", "--h
 print(f"main -> {git('rev-parse', '--short', 'main')}  ({len(files)} website files, {ahead} new commit(s))")
 if dry:
     sys.exit("Dry run: nothing pushed.")
+# the Instagram job commits social/posted.json on GitHub, so bring those commits in first
+git("pull", "--rebase", "--quiet", "origin", "main", capture=False)
 git("push", "origin", "main", capture=False)
 print("Pushed. GitHub Actions uploads site/ to theartfulproducts.com: watch it under the repo's Actions tab.")
