@@ -3,9 +3,18 @@ require __DIR__ . '/_admin.php';
 if ($p = admin_ready()) { header('Location: login.php'); exit; }
 require_login();
 
-/* filters: "todo" = paid and still to be made/shipped (the default view); archived orders only in "Archived" */
+/* filters: "all" is the default; "todo" = every live order not shipped yet, paid or not; archived orders only in "Archived" */
 $views = order_views();
-$view = isset($views[$_GET['view'] ?? '']) ? $_GET['view'] : 'todo';
+$view = isset($views[$_GET['view'] ?? '']) ? $_GET['view'] : 'all';
+
+/* simple Paid / Not paid tag, with the detail underneath */
+function paid_tag(array $o): string {
+  $st = $o['payment_status'];
+  if ($st === 'paid') return '<span class="b b-pay-paid">Paid</span>';
+  if ($st === 'refunded') return '<span class="b b-pay-refunded">Refunded</span>';
+  $why = ['cod' => 'Cash on delivery', 'failed' => 'Payment failed', 'pending' => 'Awaiting payment'][$st] ?? $st;
+  return '<span class="b b-pay-unpaid">Not paid</span><small>' . e($why) . '</small>';
+}
 $q = trim((string)($_GET['q'] ?? ''));
 
 $where = $views[$view][1]; $args = [];
@@ -28,6 +37,7 @@ $sum = function (string $since) {
 $today = $sum(date('Y-m-d 00:00:00'));
 $week = $sum(date('Y-m-d 00:00:00', strtotime('monday this week')));
 $month = $sum(date('Y-m-01 00:00:00'));
+$notPaid = (int)db()->query("SELECT COUNT(*) FROM orders WHERE {$views['todo'][1]} AND payment_status NOT IN ('paid','refunded')")->fetchColumn();
 $newEnq = (int)db()->query("SELECT COUNT(*) FROM enquiries WHERE status = 'new' AND COALESCE(archived,0) = 0")->fetchColumn();
 
 page_start('Orders', 'index.php');
@@ -36,7 +46,7 @@ page_start('Orders', 'index.php');
   <div><small>Today</small><b><?= inr($today['t']) ?></b><span><?= (int)$today['n'] ?> orders</span></div>
   <div><small>This week</small><b><?= inr($week['t']) ?></b><span><?= (int)$week['n'] ?> orders</span></div>
   <div><small>This month</small><b><?= inr($month['t']) ?></b><span><?= (int)$month['n'] ?> orders</span></div>
-  <a href="?view=todo"><small>To do</small><b><?= $counts['todo'] ?></b><span><?= $counts['awaiting_route'] ?> awaiting route</span></a>
+  <a href="?view=todo"><small>To do</small><b><?= $counts['todo'] ?></b><span><?= $counts['awaiting_route'] ?> awaiting route · <?= $notPaid ?> not paid</span></a>
   <a href="enquiries.php"><small>New enquiries</small><b><?= $newEnq ?></b><span>bulk &amp; contact</span></a>
 </div>
 
@@ -58,7 +68,7 @@ page_start('Orders', 'index.php');
   <div class="empty"><?= $q ? 'No orders match your search.' : 'No orders here yet.' ?></div>
 <?php else: ?>
 <div class="table">
-  <div class="tr th"><span>Order</span><span>Customer</span><span>Items</span><span>Total</span><span>Payment</span><span>Stage</span></div>
+  <div class="tr th"><span>Order</span><span>Customer</span><span>Items</span><span>Total</span><span>Paid?</span><span>Status</span></div>
   <?php foreach ($orders as $o):
     $items = order_items($o);
     $summary = implode(', ', array_map(fn($l) => $l['name'] . ($l['qty'] > 1 ? ' ×' . $l['qty'] : ''), $items));
@@ -68,7 +78,7 @@ page_start('Orders', 'index.php');
     <span><b><?= e($o['name']) ?></b><small><?= e(implode(' · ', array_filter([$o['city'], $o['phone']]))) ?></small></span>
     <span class="items"><?= e($summary) ?></span>
     <span class="num"><?= inr($o['total']) ?></span>
-    <span><?= badge('pay', $o['payment_status']) ?></span>
+    <span><?= paid_tag($o) ?></span>
     <span><?= badge('stage', $o['stage']) ?></span>
   </a>
   <?php endforeach; ?>

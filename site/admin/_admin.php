@@ -58,7 +58,9 @@ function check_csrf(): void {
    Every view except "Archived" leaves archived orders out. */
 function order_views(): array {
   $v = [
-    'todo' => ['To do', "payment_status IN ('paid','cod') AND stage NOT IN ('shipped','delivered','cancelled')"],
+    'all' => ['All', '1=1'],
+    /* every live order not yet shipped, paid or not; abandoned website checkouts (never paid online) stay under Unpaid */
+    'todo' => ['To do', "stage NOT IN ('shipped','delivered','cancelled') AND (payment_status IN ('paid','cod') OR source = 'manual')"],
     'awaiting_route' => ['Awaiting route', "stage = 'awaiting_route' AND payment_status IN ('paid','cod')"],
     'preview_sent' => ['Preview sent', "stage = 'preview_sent'"],
     'printing' => ['Approved / printing', "stage IN ('approved','printing','packed')"],
@@ -66,7 +68,6 @@ function order_views(): array {
     'delivered' => ['Delivered', "stage = 'delivered'"],
     'unpaid' => ['Unpaid / abandoned', "payment_status IN ('pending','failed') AND stage <> 'cancelled'"],
     'cancelled' => ['Cancelled', "stage = 'cancelled'"],
-    'all' => ['All', '1=1'],
   ];
   foreach ($v as $k => [$label, $w]) $v[$k] = [$label, "($w) AND COALESCE(archived,0) = 0"];
   $v['archived'] = ['Archived', 'COALESCE(archived,0) = 1'];
@@ -87,7 +88,7 @@ function page_start(string $title, string $active = ''): void {
   $nav = ['index.php' => 'Orders', 'new-order.php' => '+ New order', 'customers.php' => 'Customers', 'products.php' => 'Custom products', 'enquiries.php' => 'Enquiries'];
   echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow"><title>' . e($title) . ' · Admin · The Artful Products</title>
-  <link rel="icon" href="../assets/img/mark.svg"><link rel="stylesheet" href="admin.css?v=6"></head><body>
+  <link rel="icon" href="../assets/img/mark.svg"><link rel="stylesheet" href="admin.css?v=7"></head><body>
   <header class="top"><a class="brand" href="index.php"><img src="../assets/img/logo-main.svg" alt="The Artful Products"><span>Admin</span></a>';
   if (logged_in()) {
     echo '<nav>';
