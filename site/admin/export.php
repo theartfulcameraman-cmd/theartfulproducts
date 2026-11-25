@@ -14,7 +14,7 @@ header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="artful-orders-' . date('Y-m-d') . '.csv"');
 $out = fopen('php://output', 'w');
 fwrite($out, "\xEF\xBB\xBF");   // so Excel reads ₹ and Indian names correctly
-fputcsv($out, ['Order', 'Date', 'Source', 'Payment', 'Method', 'Stage', 'Name', 'Phone', 'Email', 'Address', 'City', 'PIN', 'Items', 'Personalisation', 'Subtotal', 'Discount', 'Code', 'Shipping', 'Gift wrap', 'Total', 'Advance paid', 'Balance due', 'Courier', 'Tracking', 'Razorpay payment', 'Notes']);
+fputcsv($out, ['Order', 'Date', 'Source', 'Payment', 'Method', 'Stage', 'Name', 'Phone', 'Email', 'Address', 'City', 'PIN', 'SKUs', 'Items', 'Personalisation', 'Subtotal', 'Discount', 'Code', 'Shipping', 'Gift wrap', 'Total', 'Advance paid', 'Balance due', 'Courier', 'Tracking', 'Razorpay payment', 'Notes']);
 // guard against spreadsheet formula injection from customer-typed text
 $safe = fn($v) => is_string($v) && preg_match('/^[=+\-@]/', $v) ? "'" . $v : $v;
 while ($o = $s->fetch()) {
@@ -22,6 +22,7 @@ while ($o = $s->fetch()) {
   fputcsv($out, array_map($safe, [
     $o['order_no'], $o['created_at'], $o['source'], PAYMENT[$o['payment_status']] ?? $o['payment_status'], $o['payment_method'], STAGES[$o['stage']] ?? $o['stage'],
     $o['name'], $o['phone'], $o['email'], $o['address'], $o['city'], $o['pin'],
+    implode('; ', array_map(fn($l) => $l['sku'] . ' x' . $l['qty'], $items)),
     implode('; ', array_map(fn($l) => $l['name'] . ' x' . $l['qty'] . (array_filter([$l['colour'] ?? '', $l['opt'] ?? '']) ? ' (' . implode(', ', array_filter([$l['colour'] ?? '', $l['opt'] ?? ''])) . ')' : ''), $items)),
     implode(' | ', array_filter(array_column($items, 'note'))),
     $o['sub'], $o['disc'], $o['code'], $o['ship'], $o['wrap'], $o['total'], (int)$o['advance_paid'], $o['payment_status'] === 'paid' || $o['payment_status'] === 'refunded' ? 0 : max(0, $o['total'] - ($o['payment_status'] === 'advance' ? (int)$o['advance_paid'] : 0)), $o['courier'], $o['tracking_no'], $o['rzp_payment_id'], $o['admin_notes'],

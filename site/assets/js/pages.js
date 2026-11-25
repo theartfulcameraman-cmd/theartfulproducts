@@ -228,6 +228,7 @@
           <div class="prate">${stars(p.rating, p.reviews)}${p.reviews ? `<a href="#tabs" class="muted small">${p.reviews} reviews</a>` : ""}</div>
           <div class="pprice">${priceHtml(p)}${p.compareAt ? `<span class="save">Save ${inr(p.compareAt - p.price)}</span>` : ""}</div>
           <p class="muted">${esc(p.short)}</p>
+          ${p.sku ? `<p class="psku muted small">SKU <span data-sku>${esc(p.sku + (p.colours?.[0]?.code ? "-" + p.colours[0].code : ""))}</span></p>` : ""}
           ${lowStock ? `<div class="stock"><p>🔥 Hurry — only <b>${p.stock} left</b> in stock</p><i><em style="width:${p.stock / 15 * 100}%"></em></i></div>` : ""}
           ${buyBox(p, "pdp")}
           ${p.status === "live" ? `<ul class="perks"><li>${T().icon.truck}<span>Order today, dispatched by <b>${add(d1)}</b> · estimated delivery ${add(d1 + 2)}–${add(d1 + 5)}</span></li><li>${T().icon.lock}<span>Secure payment by UPI, cards or netbanking</span></li><li>${T().icon.chat}<span>Questions? <a href="https://wa.me/${S.whatsapp}?text=${encodeURIComponent("Hi! A question about " + p.name)}" target="_blank" rel="noopener">WhatsApp us</a></span></li></ul>` : ""}
@@ -248,6 +249,7 @@
     main.addEventListener("mousemove", e => { if (isVid(view)) return; const r = main.getBoundingClientRect(); main.style.setProperty("--zx", ((e.clientX - r.left) / r.width * 100) + "%"); main.style.setProperty("--zy", ((e.clientY - r.top) / r.height * 100) + "%"); main.classList.add("zoom"); });
     main.addEventListener("mouseleave", () => main.classList.remove("zoom"));
     document.addEventListener("colour:change", e => { if (e.detail.id === p.id && e.detail.hex !== hex) { hex = e.detail.hex; show(); } });
+    document.addEventListener("colour:change", e => { const c = e.detail.id === p.id && p.sku && p.colours?.find(x => x.hex === e.detail.hex), el = $("[data-sku]"); if (c && el) el.textContent = p.sku + (c.code ? "-" + c.code : ""); });
     wireBuyBox($("#pdp"), p);
 
     // tabs

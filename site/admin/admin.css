@@ -66,6 +66,9 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--ink); }
 .b-pay-paid { background: #dff3e6; color: #1d5e33; }
 .b-pay-cod { background: #e3ecfb; color: #1f4b8f; }
 .b-pay-pending { background: #fff3cd; color: #7a5a00; }
+.sku { font: 700 .74rem/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .02em; background: #f1efea; color: #2b2a28; padding: 1px 6px; border-radius: 5px; white-space: nowrap; }
+.skugrid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; } .skugrid h3 { font-size: .95rem; margin: 0 0 8px; } .skugrid p { margin: 0 0 10px; }
+@media (max-width: 700px) { .skugrid { grid-template-columns: 1fr; } }
 .b-pay-advance { background: #fff1dc; color: #8a4b00; }
 .b-pay-unpaid { background: #fdecea; color: #8a2017; }
 .b-pay-failed, .b-pay-refunded { background: #fdecea; color: #8a2017; }

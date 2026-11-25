@@ -349,7 +349,7 @@ for p in PRODUCTS:
     cat = next((c["name"] for c in CATS if c["id"] == p.get("cat")), "")
     title = f"{p['name']} | The Artful Products"
     ld = {"@context": "https://schema.org", "@type": "Product", "name": p["name"], "description": p.get("desc") or p.get("short", ""),
-          "brand": {"@type": "Brand", "name": "The Artful Products"}, "category": cat, "sku": p["id"],
+          "brand": {"@type": "Brand", "name": "The Artful Products"}, "category": cat, "sku": p.get("sku") or p["id"],
           "image": [SITE_URL + "/" + i for i in p.get("images", [])] or [SITE_URL + f"/assets/img/og/{p['id']}.png"],
           "url": f"{SITE_URL}/{slug}"}
     if p.get("price") and p.get("status", "live") == "live":

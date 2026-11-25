@@ -24,18 +24,19 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
       if (str_starts_with($id, 'c:')) {                       // custom product
         $cp = custom_product((int)substr($id, 2));
         if (!$cp) throw new InvalidArgumentException('That custom product no longer exists');
-        $name = $cp['name']; $personal = (bool)$cp['personal']; $default = (int)$cp['price'];
+        $name = $cp['name']; $personal = (bool)$cp['personal']; $default = (int)$cp['price']; $sku = custom_sku($cp);
       } elseif ($id === 'oneoff') {                            // typed in for this order only
         $name = clip($row['name'] ?? '', 160);
         if ($name === '') throw new InvalidArgumentException('Please name the one-off item');
-        $personal = !empty($row['personal']); $default = 0;
+        $personal = !empty($row['personal']); $default = 0; $sku = 'TAP-ONEOFF';
       } elseif (isset($byId[$id])) {                           // website product
         $p = $byId[$id]; $name = $p['name']; $personal = !empty($p['personal']); $default = unit_price($p, $qty, 0);
         $names = array_column($p['colours'] ?? [], 'name');
         if ($names && !in_array($colour, $names, true)) $colour = $names[0];
+        $sku = product_sku($p, $colour);
       } else throw new InvalidArgumentException('Unknown product');
       $unit = trim((string)($row['price'] ?? '')) === '' ? $default : max(0, (int)$row['price']);
-      $lines[] = ['id' => $id === 'oneoff' ? 'oneoff' : $id, 'name' => $name, 'qty' => $qty, 'optIdx' => 0, 'opt' => '',
+      $lines[] = ['id' => $id === 'oneoff' ? 'oneoff' : $id, 'sku' => $sku, 'name' => $name, 'qty' => $qty, 'optIdx' => 0, 'opt' => '',
         'colour' => $colour, 'note' => mb_substr(trim((string)($row['note'] ?? '')), 0, 300), 'personal' => $personal, 'unit' => $unit, 'total' => $unit * $qty];
     }
     if (!$lines) throw new InvalidArgumentException('Please add at least one item');
@@ -77,14 +78,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 
 /* one product <select>, reused for every row */
 $options = '<option value="">— choose —</option><optgroup label="Website products">';
-foreach ($site as $p) $options .= '<option value="' . e($p['id']) . '" data-price="' . (int)$p['price'] . '" data-colours="' . e(json_encode(array_column($p['colours'] ?? [], 'name'))) . '">' . e($p['name']) . '</option>';
+foreach ($site as $p) $options .= '<option value="' . e($p['id']) . '" data-price="' . (int)$p['price'] . '" data-colours="' . e(json_encode(array_column($p['colours'] ?? [], 'name'))) . '">' . e(product_sku($p) . ' · ' . $p['name']) . '</option>';
 $options .= '</optgroup>';
 if ($custom) {
   $options .= '<optgroup label="Custom products (not on website)">';
-  foreach ($custom as $cp) $options .= '<option value="c:' . (int)$cp['id'] . '" data-price="' . (int)$cp['price'] . '">' . e($cp['name']) . '</option>';
+  foreach ($custom as $cp) $options .= '<option value="c:' . (int)$cp['id'] . '" data-price="' . (int)$cp['price'] . '">' . e(custom_sku($cp) . ' · ' . $cp['name']) . '</option>';
   $options .= '</optgroup>';
 }
-$options .= '<optgroup label="Other"><option value="oneoff" data-price="">One-off item (type a name)…</option></optgroup>';
+$options .= '<optgroup label="Other"><option value="oneoff" data-price="">TAP-ONEOFF · One-off item (type a name)…</option></optgroup>';
 
 page_start('New order', 'new-order.php');
 ?>

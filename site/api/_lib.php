@@ -36,6 +36,16 @@ function catalog(): array {
   return $c;
 }
 
+/* ---- SKUs ----
+   TAP-<category>-<product>-<colour>   e.g. TAP-FRM-TER-OAK = Terrain frame, Oak
+   TAP-CUS-<category>-<number>          custom (admin-only) product, e.g. TAP-CUS-AWA-003
+   TAP-ONEOFF                           one-off item typed into an order */
+function product_sku(array $p, string $colour = ''): string {
+  $sku = (string)($p['sku'] ?? ('TAP-' . strtoupper(substr(preg_replace('/[^a-z]/i', '', (string)($p['id'] ?? 'X')), 0, 6))));
+  foreach (($p['colours'] ?? []) as $c) if ($colour !== '' && $c['name'] === $colour && !empty($c['code'])) return $sku . '-' . $c['code'];
+  return $sku;
+}
+
 /* ---- pricing: same rules as pricing.js ---- */
 function unit_price(array $p, int $qty, int $optIdx): int {
   $base = (int)($p['price'] ?? 0);
@@ -68,10 +78,11 @@ function compute_order(array $items, array $opts, array $site, array $products):
     $optIdx = max(0, min($nOpt - 1, (int)($it['optIdx'] ?? 0)));
     $colours = array_map(fn($c) => $c['name'], $p['colours'] ?? []);
     $u = unit_price($p, $qty, $optIdx);
+    $colour = in_array($it['colour'] ?? null, $colours, true) ? $it['colour'] : ($colours[0] ?? '');
     $lines[] = [
-      'id' => $p['id'], 'name' => $p['name'], 'qty' => $qty, 'optIdx' => $optIdx,
+      'id' => $p['id'], 'sku' => product_sku($p, $colour), 'name' => $p['name'], 'qty' => $qty, 'optIdx' => $optIdx,
       'opt' => isset($p['options']) ? $p['options']['values'][$optIdx] : '',
-      'colour' => in_array($it['colour'] ?? null, $colours, true) ? $it['colour'] : ($colours[0] ?? ''),
+      'colour' => $colour,
       'note' => mb_substr((string)($it['note'] ?? ''), 0, 300),
       'personal' => !empty($p['personal']),
       'unit' => $u, 'total' => $u * $qty,

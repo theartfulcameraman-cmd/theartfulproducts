@@ -59,10 +59,10 @@ window.SITE = {
 /* Categories. "art" picks the placeholder drawing used until you add a photo
    (magnet, keychain, holder, frame, coaster, print, trophy, ornament, lamp, …). */
 window.CATEGORIES = [
-  { id: "fridge-magnets",  name: "3D Trail Fridge Magnets", art: "magnet",   blurb: "The ride, run or trek you finished, raised in 3D on your fridge." },
-  { id: "keychains",       name: "3D Trail Keychains",      art: "keychain", blurb: "Your route outline, carried every day." },
-  { id: "frames",          name: "Terrain Frames",  art: "frame",  blurb: "Your route in 3D terrain, framed next to your medal." },
-  { id: "medal-display",   name: "Medal Display",   art: "holder", blurb: "Ridge-line racks for every medal you've earned." }
+  { id: "fridge-magnets",  code: "MAG", name: "3D Trail Fridge Magnets", art: "magnet",   blurb: "The ride, run or trek you finished, raised in 3D on your fridge." },
+  { id: "keychains",       code: "KEY", name: "3D Trail Keychains",      art: "keychain", blurb: "Your route outline, carried every day." },
+  { id: "frames",          code: "FRM", name: "Terrain Frames",  art: "frame",  blurb: "Your route in 3D terrain, framed next to your medal." },
+  { id: "medal-display",   code: "MED", name: "Medal Display",   art: "holder", blurb: "Ridge-line racks for every medal you've earned." }
 ];
 
 window.SPORTS = [
@@ -71,15 +71,19 @@ window.SPORTS = [
   { id: "trekking", name: "Trekking" }
 ];
 
+/* code = the last part of a SKU (3 letters, unique) */
 const COLOURS = {
-  charcoal: { name: "Charcoal", hex: "#2B2A28" }, white: { name: "Chalk", hex: "#F1EFEA" },
-  sand: { name: "Sand", hex: "#D8C6A5" }, orange: { name: "Ember", hex: "#EC683B" },
-  glow: { name: "Glow", hex: "#CDE7AE" }, oak: { name: "Oak", hex: "#B98B5E" }, stone: { name: "Stone", hex: "#9A9792" }
+  charcoal: { name: "Charcoal", hex: "#2B2A28", code: "CHR" }, white: { name: "Chalk", hex: "#F1EFEA", code: "CHK" },
+  sand: { name: "Sand", hex: "#D8C6A5", code: "SND" }, orange: { name: "Ember", hex: "#EC683B", code: "EMB" },
+  glow: { name: "Glow", hex: "#CDE7AE", code: "GLW" }, oak: { name: "Oak", hex: "#B98B5E", code: "OAK" }, stone: { name: "Stone", hex: "#9A9792", code: "STN" }
 };
 
 /* ------------------------------------------------------------------
-   PRODUCTS — copy a block to add a new one. Only id, name, cat, price,
+   PRODUCTS — copy a block to add a new one. Only id, sku, name, cat, price,
    short, desc are required. Everything else is optional:
+     sku:      "TAP-<category code>-<3-letter product code>", e.g. "TAP-MAG-TRL".
+               The colour code is added per order line: TAP-MAG-TRL-CHR = Trail magnet, Charcoal.
+               Custom (admin-only) products get TAP-CUS-<category>-<number>; one-off items TAP-ONEOFF.
      images:   ["assets/img/products/trail-magnet-1.jpg", …]  (real photos)
      colours:  [COLOURS.charcoal, …]       options: { label, values, extra }
      personal: true  → shows the "your event & details" box
@@ -87,7 +91,7 @@ const COLOURS = {
      status:   "live" (default) · "soon" (notify me) · "quote" (bulk only)
    ------------------------------------------------------------------ */
 window.PRODUCTS = [
-  { id: "trail-magnet", name: "3D Trail Fridge Magnet", cat: "fridge-magnets", art: "magnet",
+  { id: "trail-magnet", sku: "TAP-MAG-TRL", name: "3D Trail Fridge Magnet", cat: "fridge-magnets", art: "magnet",
     price: 349,                          // PLACEHOLDER price
     best: true, personal: true,
     sports: ["running", "cycling", "trekking"], colours: [COLOURS.charcoal, COLOURS.white, COLOURS.sand],
@@ -95,7 +99,7 @@ window.PRODUCTS = [
     desc: "A palm-sized relief of the terrain you covered, with your route raised on top in a contrasting colour. Backed with a strong magnet.",
     specs: ["Approx. 70 × 50 mm", "Two-colour 3D print", "Strong magnet backing", "Dispatch in 3–5 working days"] },
 
-  { id: "route-keychain", name: "3D Trail Keychain", cat: "keychains", art: "keychain",
+  { id: "route-keychain", sku: "TAP-KEY-RTE", name: "3D Trail Keychain", cat: "keychains", art: "keychain",
     price: 299,                          // PLACEHOLDER price
     isNew: true, personal: true,
     sports: ["running", "cycling", "trekking"], colours: [COLOURS.charcoal, COLOURS.orange, COLOURS.glow],
@@ -103,7 +107,7 @@ window.PRODUCTS = [
     desc: "The outline of your route as a slim keychain tag, with the event name and date on the back. Steel ring included.",
     specs: ["Approx. 55 mm tall", "Tough, flexible print", "Steel split ring", "Dispatch in 3–5 working days"] },
 
-  { id: "medal-holder", name: "Ridge Medal Holder", cat: "medal-display", art: "holder",
+  { id: "medal-holder", sku: "TAP-MED-RDG", name: "Ridge Medal Holder", cat: "medal-display", art: "holder",
     price: 1499,                         // PLACEHOLDER price
     best: true,
     sports: ["running", "cycling", "trekking"], colours: [COLOURS.charcoal, COLOURS.stone, COLOURS.orange],
@@ -111,7 +115,7 @@ window.PRODUCTS = [
     desc: "A wall hanger shaped like an elevation profile, with hooks for your medals. Wall plugs and screws included.",
     specs: ["Approx. 400 × 90 mm", "Steel hooks", "Holds up to 12 medals", "Dispatch in 3–5 working days"] },
 
-  { id: "terrain-frame", name: "Terrain Award Frame", cat: "frames", art: "frame",
+  { id: "terrain-frame", sku: "TAP-FRM-TER", name: "Terrain Award Frame", cat: "frames", art: "frame",
     price: 3499,                         // PLACEHOLDER price
     best: true, featured: true, badge: "Made to order", personal: true,   // featured = the home-page spotlight
     sports: ["running", "cycling", "trekking"], colours: [COLOURS.charcoal, COLOURS.oak, COLOURS.white],

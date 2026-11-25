@@ -109,7 +109,7 @@ page_start($o['order_no']);
     <h2>Items</h2>
     <?php foreach ($items as $l): ?>
       <div class="line">
-        <div><b><?= e($l['name']) ?></b> <span class="muted">×<?= (int)$l['qty'] ?></span>
+        <div><span class="sku"><?= e($l['sku']) ?></span><br><b><?= e($l['name']) ?></b> <span class="muted">×<?= (int)$l['qty'] ?></span>
           <?php $x = array_filter([$l['colour'] ?? '', $l['opt'] ?? '']); if ($x): ?><br><span class="muted"><?= e(implode(' · ', $x)) ?></span><?php endif; ?>
           <?php if (!empty($l['note'])): ?><div class="note">“<?= e($l['note']) ?>”</div><?php endif; ?>
           <?php if (!empty($l['personal'])): ?><span class="tag">Personalised</span><?php endif; ?>

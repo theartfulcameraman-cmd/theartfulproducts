@@ -123,6 +123,7 @@ function migrate(PDO $p): void {
     id $id, created_at VARCHAR(20), name VARCHAR(160), price INT DEFAULT 0, category VARCHAR(80) DEFAULT '',
     description TEXT, personal INT DEFAULT 0, active INT DEFAULT 1
   )$tail");
+  try { $p->exec("ALTER TABLE custom_products ADD COLUMN sku VARCHAR(40) DEFAULT ''"); } catch (PDOException $e) {}
   // indexes (ignore "already exists")
   foreach (['CREATE INDEX idx_orders_rzp ON orders (rzp_order_id)', 'CREATE INDEX idx_events_order ON order_events (order_id)'] as $sql) {
     try { $p->exec($sql); } catch (PDOException $e) {}
@@ -138,7 +139,25 @@ function order_by_rzp(string $rzpOrderId): ?array {
   $s = db()->prepare('SELECT * FROM orders WHERE rzp_order_id = ?'); $s->execute([$rzpOrderId]);
   return $s->fetch() ?: null;
 }
-function order_items(array $o): array { return json_decode($o['items'] ?: '[]', true) ?: []; }
+function order_items(array $o): array {
+  $items = json_decode($o['items'] ?: '[]', true) ?: [];
+  foreach ($items as &$l) if (empty($l['sku'])) $l['sku'] = line_sku($l);   // orders saved before SKUs existed
+  return $items;
+}
+
+/* SKU for an order line, worked out from what it is (website / custom / one-off) */
+function line_sku(array $l): string {
+  $id = (string)($l['id'] ?? '');
+  if ($id === 'oneoff') return 'TAP-ONEOFF';
+  if (str_starts_with($id, 'c:')) { $cp = custom_product((int)substr($id, 2)); return $cp ? custom_sku($cp) : 'TAP-CUS-' . str_pad(substr($id, 2), 3, '0', STR_PAD_LEFT); }
+  foreach (catalog()['products'] as $p) if ($p['id'] === $id) return product_sku($p, (string)($l['colour'] ?? ''));
+  return 'TAP-' . strtoupper($id);
+}
+function custom_sku(array $cp): string {
+  if (!empty($cp['sku'])) return $cp['sku'];
+  $cat = strtoupper(substr(preg_replace('/[^a-z]/i', '', (string)$cp['category']), 0, 3)) ?: 'GEN';
+  return 'TAP-CUS-' . str_pad($cat, 3, 'X') . '-' . str_pad((string)(int)$cp['id'], 3, '0', STR_PAD_LEFT);
+}
 
 function add_event(int $orderId, string $kind, string $message): void {
   db()->prepare('INSERT INTO order_events (order_id, at, kind, message) VALUES (?,?,?,?)')->execute([$orderId, now(), $kind, $message]);

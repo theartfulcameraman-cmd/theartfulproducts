@@ -18,6 +18,7 @@
  "products": [
   {
    "id": "trail-magnet",
+   "sku": "TAP-MAG-TRL",
    "name": "3D Trail Fridge Magnet",
    "cat": "fridge-magnets",
    "art": "magnet",
@@ -32,15 +33,18 @@
    "colours": [
     {
      "name": "Charcoal",
-     "hex": "#2B2A28"
+     "hex": "#2B2A28",
+     "code": "CHR"
     },
     {
      "name": "Chalk",
-     "hex": "#F1EFEA"
+     "hex": "#F1EFEA",
+     "code": "CHK"
     },
     {
      "name": "Sand",
-     "hex": "#D8C6A5"
+     "hex": "#D8C6A5",
+     "code": "SND"
     }
    ],
    "short": "Your route raised on real terrain, on a strong magnet.",
@@ -54,6 +58,7 @@
   },
   {
    "id": "route-keychain",
+   "sku": "TAP-KEY-RTE",
    "name": "3D Trail Keychain",
    "cat": "keychains",
    "art": "keychain",
@@ -68,15 +73,18 @@
    "colours": [
     {
      "name": "Charcoal",
-     "hex": "#2B2A28"
+     "hex": "#2B2A28",
+     "code": "CHR"
     },
     {
      "name": "Ember",
-     "hex": "#EC683B"
+     "hex": "#EC683B",
+     "code": "EMB"
     },
     {
      "name": "Glow",
-     "hex": "#CDE7AE"
+     "hex": "#CDE7AE",
+     "code": "GLW"
     }
    ],
    "short": "Your route outline as a slim, tough keychain.",
@@ -90,6 +98,7 @@
   },
   {
    "id": "medal-holder",
+   "sku": "TAP-MED-RDG",
    "name": "Ridge Medal Holder",
    "cat": "medal-display",
    "art": "holder",
@@ -103,15 +112,18 @@
    "colours": [
     {
      "name": "Charcoal",
-     "hex": "#2B2A28"
+     "hex": "#2B2A28",
+     "code": "CHR"
     },
     {
      "name": "Stone",
-     "hex": "#9A9792"
+     "hex": "#9A9792",
+     "code": "STN"
     },
     {
      "name": "Ember",
-     "hex": "#EC683B"
+     "hex": "#EC683B",
+     "code": "EMB"
     }
    ],
    "short": "A wall rack shaped like a ridge line, for all your medals.",
@@ -125,6 +137,7 @@
   },
   {
    "id": "terrain-frame",
+   "sku": "TAP-FRM-TER",
    "name": "Terrain Award Frame",
    "cat": "frames",
    "art": "frame",
@@ -141,15 +154,18 @@
    "colours": [
     {
      "name": "Charcoal",
-     "hex": "#2B2A28"
+     "hex": "#2B2A28",
+     "code": "CHR"
     },
     {
      "name": "Oak",
-     "hex": "#B98B5E"
+     "hex": "#B98B5E",
+     "code": "OAK"
     },
     {
      "name": "Chalk",
-     "hex": "#F1EFEA"
+     "hex": "#F1EFEA",
+     "code": "CHK"
     }
    ],
    "images": [

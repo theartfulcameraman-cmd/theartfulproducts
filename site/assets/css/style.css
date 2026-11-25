@@ -717,3 +717,4 @@ mark.ph { background: #FFF1B8; color: inherit; padding: 0 4px; border-radius: 4p
   .f-brand { grid-column: 1 / -1; }
 }
 @media (max-width: 480px) { .trust-in { grid-template-columns: 1fr; } .trust-in > div { gap: 10px; } }
+.psku { margin: -6px 0 14px; font-size: .78rem; letter-spacing: .04em; } .psku span { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-weight: 600; color: var(--ink, #2b2a28); }
