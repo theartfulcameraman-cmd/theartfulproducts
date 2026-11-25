@@ -158,7 +158,7 @@ page_start($o['order_no']);
       <?= csrf_field() ?><input type="hidden" name="action" value="update">
       <label>Stage<select name="stage"><?php foreach (STAGES as $k => $label): ?><option value="<?= $k ?>" <?= $k === $o['stage'] ? 'selected' : '' ?>><?= $label ?></option><?php endforeach; ?></select></label>
       <label>Payment<select name="payment_status"><?php foreach (PAYMENT as $k => $label): ?><option value="<?= $k ?>" <?= $k === $o['payment_status'] ? 'selected' : '' ?>><?= $label ?></option><?php endforeach; ?></select></label>
-      <label data-advance <?= $o['payment_status'] === 'advance' ? '' : 'hidden' ?>>Advance received (₹) <small class="muted">of <?= inr($o['total']) ?></small><input name="advance_paid" type="number" min="1" value="<?= (int)$o['advance_paid'] ?: '' ?>"></label>
+      <label data-advance data-total="<?= (int)$o['total'] ?>" <?= $o['payment_status'] === 'advance' ? '' : 'hidden' ?>>Advance received (₹, any amount)<input name="advance_paid" type="number" min="1" value="<?= (int)$o['advance_paid'] ?: '' ?>"><small class="muted" data-due></small></label>
       <label>Courier<select name="courier"><option value="">—</option><?php foreach (COURIERS as $k => $_): ?><option <?= $k === $o['courier'] ? 'selected' : '' ?>><?= $k ?></option><?php endforeach; ?></select></label>
       <label>Tracking number<input name="tracking_no" value="<?= e($o['tracking_no']) ?>"></label>
       <label class="full">Tracking link <small class="muted">(filled in automatically for Shiprocket and Delhivery)</small><input name="tracking_url" value="<?= e($o['tracking_url']) ?>" placeholder="https://…"></label>
@@ -202,8 +202,21 @@ page_start($o['order_no']);
 /* show the advance-amount box only when "Advance paid" is picked */
 document.querySelectorAll('select[name="payment_status"]').forEach(sel => {
   const box = sel.form.querySelector('[data-advance]'); if (!box) return;
-  const sync = () => { box.hidden = sel.value !== 'advance'; box.querySelector('input').required = !box.hidden; };
-  sel.addEventListener('change', sync); sync();
+  const inp = box.querySelector('input'), due = box.querySelector('[data-due]'), f = sel.form;
+  const rs = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const orderTotal = () => {   // order page knows its total; the new-order form adds it up from the rows
+    if (box.dataset.total) return +box.dataset.total;
+    let s = 0;
+    f.querySelectorAll('.itemrow2').forEach(r => { if (r.querySelector('.prod').value) s += (+r.querySelector('.price').value || 0) * (+r.querySelector('[name$="[qty]"]').value || 0); });
+    return Math.max(0, s - (+f.disc.value || 0) + (+f.ship.value || 0));
+  };
+  const sync = () => {
+    box.hidden = sel.value !== 'advance'; inp.required = !box.hidden;
+    const t = orderTotal(), a = +inp.value || 0;
+    due.textContent = !t ? 'Add items to see the balance' : !a ? 'Order total ' + rs(t) + ': type any amount received'
+      : a >= t ? 'Covers the full ' + rs(t) + ': will be saved as Paid' : 'Balance due: ' + rs(t - a) + ' of ' + rs(t);
+  };
+  sel.addEventListener('change', sync); f.addEventListener('input', sync); f.addEventListener('change', sync); sync();
 });
 </script>
 <?php page_end();

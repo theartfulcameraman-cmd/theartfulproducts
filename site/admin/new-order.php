@@ -123,7 +123,7 @@ page_start('New order', 'new-order.php');
 
   <h2 class="full">Payment &amp; status</h2>
   <label>Payment<select name="payment_status"><option value="paid">Paid in full</option><option value="advance">Advance paid</option><option value="pending">Not paid yet</option><option value="cod">Cash on delivery</option></select></label>
-  <label data-advance hidden>Advance received (₹)<input name="advance_paid" type="number" min="1" placeholder="e.g. 1000"></label>
+  <label data-advance hidden>Advance received (₹, any amount)<input name="advance_paid" type="number" min="1" placeholder="e.g. 1000"><small class="muted" data-due></small></label>
   <label>Method<select name="method"><option>UPI</option><option>Cash</option><option>Card</option><option>Bank transfer</option><option>Payment link</option><option>Invoice</option></select></label>
   <label>Shipping charge (₹)<input name="ship" type="number" min="0" value="0"></label>
   <label>Discount (₹)<input name="disc" type="number" min="0" value="0"></label>
@@ -137,8 +137,21 @@ page_start('New order', 'new-order.php');
 /* show the advance-amount box only when "Advance paid" is picked */
 document.querySelectorAll('select[name="payment_status"]').forEach(sel => {
   const box = sel.form.querySelector('[data-advance]'); if (!box) return;
-  const sync = () => { box.hidden = sel.value !== 'advance'; box.querySelector('input').required = !box.hidden; };
-  sel.addEventListener('change', sync); sync();
+  const inp = box.querySelector('input'), due = box.querySelector('[data-due]'), f = sel.form;
+  const rs = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const orderTotal = () => {   // order page knows its total; the new-order form adds it up from the rows
+    if (box.dataset.total) return +box.dataset.total;
+    let s = 0;
+    f.querySelectorAll('.itemrow2').forEach(r => { if (r.querySelector('.prod').value) s += (+r.querySelector('.price').value || 0) * (+r.querySelector('[name$="[qty]"]').value || 0); });
+    return Math.max(0, s - (+f.disc.value || 0) + (+f.ship.value || 0));
+  };
+  const sync = () => {
+    box.hidden = sel.value !== 'advance'; inp.required = !box.hidden;
+    const t = orderTotal(), a = +inp.value || 0;
+    due.textContent = !t ? 'Add items to see the balance' : !a ? 'Order total ' + rs(t) + ': type any amount received'
+      : a >= t ? 'Covers the full ' + rs(t) + ': will be saved as Paid' : 'Balance due: ' + rs(t - a) + ' of ' + rs(t);
+  };
+  sel.addEventListener('change', sync); f.addEventListener('input', sync); f.addEventListener('change', sync); sync();
 });
 (() => {
   const rows = document.getElementById('rows'), inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
