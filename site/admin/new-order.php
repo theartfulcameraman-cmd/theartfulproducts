@@ -51,10 +51,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 
     $pay = isset(PAYMENT[$_POST['payment_status'] ?? '']) ? $_POST['payment_status'] : 'pending';
     $method = clip($_POST['method'] ?? '', 40);
+    $adv = 0;
+    if ($pay === 'advance') {
+      $adv = (int)($_POST['advance_paid'] ?? 0);
+      if ($adv <= 0) throw new InvalidArgumentException('Please enter the advance amount received');
+      if ($adv >= $t['total']) { $pay = 'paid'; $adv = 0; }   // advance covers everything = fully paid
+    }
     $o = order_create($t, $c, (string)($_POST['note'] ?? ''), 'manual', null, $pay, $method, !empty($_POST['marketing']));
     $oid = (int)$o['id'];
+    if ($adv) { order_update($oid, ['advance_paid' => $adv]); add_event($oid, 'paid', 'Advance ' . inr($adv) . ' received' . ($method ? " · $method" : '') . ' · ' . inr($t['total'] - $adv) . ' due'); }
     $stage = isset(STAGES[$_POST['stage'] ?? '']) ? $_POST['stage'] : 'new';
-    if ($stage === 'new' && in_array($pay, ['paid', 'cod'], true) && array_filter($lines, fn($l) => $l['personal'])) $stage = 'awaiting_route';
+    if ($stage === 'new' && in_array($pay, ['paid', 'advance', 'cod'], true) && array_filter($lines, fn($l) => $l['personal'])) $stage = 'awaiting_route';
     if ($stage !== 'new') order_update($oid, ['stage' => $stage]);
     if (!empty($_POST['source_label'])) add_event($oid, 'created', 'Order from: ' . clip($_POST['source_label'], 80));
     if ($pay === 'paid') add_event($oid, 'paid', 'Marked paid by hand' . ($method ? " · $method" : ''));
@@ -115,7 +122,8 @@ page_start('New order', 'new-order.php');
   <label>PIN<input name="pin" inputmode="numeric"></label>
 
   <h2 class="full">Payment &amp; status</h2>
-  <label>Payment<select name="payment_status"><option value="paid">Paid</option><option value="pending">Pending (advance / later)</option><option value="cod">Cash on delivery</option></select></label>
+  <label>Payment<select name="payment_status"><option value="paid">Paid in full</option><option value="advance">Advance paid</option><option value="pending">Not paid yet</option><option value="cod">Cash on delivery</option></select></label>
+  <label data-advance hidden>Advance received (₹)<input name="advance_paid" type="number" min="1" placeholder="e.g. 1000"></label>
   <label>Method<select name="method"><option>UPI</option><option>Cash</option><option>Card</option><option>Bank transfer</option><option>Payment link</option><option>Invoice</option></select></label>
   <label>Shipping charge (₹)<input name="ship" type="number" min="0" value="0"></label>
   <label>Discount (₹)<input name="disc" type="number" min="0" value="0"></label>
@@ -126,6 +134,12 @@ page_start('New order', 'new-order.php');
   <button class="btn primary">Add order</button>
 </form>
 <script>
+/* show the advance-amount box only when "Advance paid" is picked */
+document.querySelectorAll('select[name="payment_status"]').forEach(sel => {
+  const box = sel.form.querySelector('[data-advance]'); if (!box) return;
+  const sync = () => { box.hidden = sel.value !== 'advance'; box.querySelector('input').required = !box.hidden; };
+  sel.addEventListener('change', sync); sync();
+});
 (() => {
   const rows = document.getElementById('rows'), inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
   const wire = row => {

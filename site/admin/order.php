@@ -22,6 +22,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     if (isset(STAGES[$stage]) && $stage !== $o['stage']) { $changes['stage'] = $stage; $log[] = 'Stage: ' . STAGES[$o['stage']] . ' → ' . STAGES[$stage]; }
     $pay = $_POST['payment_status'] ?? $o['payment_status'];
     if (isset(PAYMENT[$pay]) && $pay !== $o['payment_status']) { $changes['payment_status'] = $pay; $log[] = 'Payment: ' . PAYMENT[$o['payment_status']] . ' → ' . PAYMENT[$pay]; }
+    if ($pay === 'advance') {
+      $adv = max(0, (int)($_POST['advance_paid'] ?? $o['advance_paid']));
+      if ($adv <= 0) { if (isset($changes['payment_status'])) { unset($changes['payment_status']); array_pop($log); } }   // no amount = keep the old payment status
+      elseif ($adv >= (int)$o['total']) { $changes['payment_status'] = 'paid'; $log[] = 'Advance covers the full amount: marked Paid'; }
+      elseif ($adv !== (int)$o['advance_paid']) { $changes['advance_paid'] = $adv; $log[] = 'Advance received: ' . inr($adv) . ' · ' . inr((int)$o['total'] - $adv) . ' due'; }
+    }
     foreach (['courier' => 60, 'tracking_no' => 80, 'tracking_url' => 255] as $f => $max) {
       $v = clip($_POST[$f] ?? '', $max);
       if ($v !== (string)$o[$f]) { $changes[$f] = $v; $log[] = ucfirst(str_replace('_', ' ', $f)) . ': ' . ($v ?: '—'); }
@@ -94,7 +100,7 @@ page_start($o['order_no']);
 <div class="ohead">
   <div><h1><?= e($o['order_no']) ?></h1>
     <p class="muted"><?= e(date('d M Y, g:ia', strtotime($o['created_at']))) ?> · <?= $o['source'] === 'manual' ? 'Added by hand' : 'Website' ?><?= $o['rzp_payment_id'] ? ' · ' . e($o['rzp_payment_id']) : '' ?></p></div>
-  <div class="ohead-b"><?= (int)$o['archived'] ? '<span class="b">Archived</span>' : '' ?> <?= badge('pay', $o['payment_status']) ?> <?= badge('stage', $o['stage']) ?> <b class="big"><?= inr($o['total']) ?></b></div>
+  <div class="ohead-b"><?= (int)$o['archived'] ? '<span class="b">Archived</span>' : '' ?> <?= badge('pay', $o['payment_status']) ?><?= $o['payment_status'] === 'advance' ? ' <span class="b b-pay-advance">' . inr($o['advance_paid']) . ' paid · ' . inr(max(0, $o['total'] - $o['advance_paid'])) . ' due</span>' : '' ?> <?= badge('stage', $o['stage']) ?> <b class="big"><?= inr($o['total']) ?></b></div>
 </div>
 <?php if ((int)$o['archived']): ?><p class="warn" style="margin-bottom:16px">This order is archived: it's hidden from your lists, totals and the Customers page.</p><?php endif; ?>
 
@@ -152,6 +158,7 @@ page_start($o['order_no']);
       <?= csrf_field() ?><input type="hidden" name="action" value="update">
       <label>Stage<select name="stage"><?php foreach (STAGES as $k => $label): ?><option value="<?= $k ?>" <?= $k === $o['stage'] ? 'selected' : '' ?>><?= $label ?></option><?php endforeach; ?></select></label>
       <label>Payment<select name="payment_status"><?php foreach (PAYMENT as $k => $label): ?><option value="<?= $k ?>" <?= $k === $o['payment_status'] ? 'selected' : '' ?>><?= $label ?></option><?php endforeach; ?></select></label>
+      <label data-advance <?= $o['payment_status'] === 'advance' ? '' : 'hidden' ?>>Advance received (₹) <small class="muted">of <?= inr($o['total']) ?></small><input name="advance_paid" type="number" min="1" value="<?= (int)$o['advance_paid'] ?: '' ?>"></label>
       <label>Courier<select name="courier"><option value="">—</option><?php foreach (COURIERS as $k => $_): ?><option <?= $k === $o['courier'] ? 'selected' : '' ?>><?= $k ?></option><?php endforeach; ?></select></label>
       <label>Tracking number<input name="tracking_no" value="<?= e($o['tracking_no']) ?>"></label>
       <label class="full">Tracking link <small class="muted">(filled in automatically for Shiprocket and Delhivery)</small><input name="tracking_url" value="<?= e($o['tracking_url']) ?>" placeholder="https://…"></label>
@@ -191,4 +198,12 @@ page_start($o['order_no']);
     </form>
   <?php endif; ?>
 </section>
+<script>
+/* show the advance-amount box only when "Advance paid" is picked */
+document.querySelectorAll('select[name="payment_status"]').forEach(sel => {
+  const box = sel.form.querySelector('[data-advance]'); if (!box) return;
+  const sync = () => { box.hidden = sel.value !== 'advance'; box.querySelector('input').required = !box.hidden; };
+  sel.addEventListener('change', sync); sync();
+});
+</script>
 <?php page_end();

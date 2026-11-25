@@ -12,6 +12,7 @@ function paid_tag(array $o): string {
   $st = $o['payment_status'];
   if ($st === 'paid') return '<span class="b b-pay-paid">Paid</span>';
   if ($st === 'refunded') return '<span class="b b-pay-refunded">Refunded</span>';
+  if ($st === 'advance') return '<span class="b b-pay-advance">Advance ' . inr($o['advance_paid']) . '</span><small>' . inr(max(0, $o['total'] - $o['advance_paid'])) . ' due</small>';
   $why = ['cod' => 'Cash on delivery', 'failed' => 'Payment failed', 'pending' => 'Awaiting payment'][$st] ?? $st;
   return '<span class="b b-pay-unpaid">Not paid</span><small>' . e($why) . '</small>';
 }
@@ -31,7 +32,7 @@ $s->execute($args); $orders = $s->fetchAll();
 $counts = [];
 foreach ($views as $k => [, $w]) { $c = db()->query("SELECT COUNT(*) FROM orders WHERE $w"); $counts[$k] = (int)$c->fetchColumn(); }
 $sum = function (string $since) {
-  $s = db()->prepare("SELECT COUNT(*) n, COALESCE(SUM(total),0) t FROM orders WHERE payment_status IN ('paid','cod') AND stage <> 'cancelled' AND COALESCE(archived,0) = 0 AND created_at >= ?");
+  $s = db()->prepare("SELECT COUNT(*) n, COALESCE(SUM(total),0) t FROM orders WHERE payment_status IN ('paid','advance','cod') AND stage <> 'cancelled' AND COALESCE(archived,0) = 0 AND created_at >= ?");
   $s->execute([$since]); return $s->fetch();
 };
 $today = $sum(date('Y-m-d 00:00:00'));
@@ -46,7 +47,7 @@ page_start('Orders', 'index.php');
   <div><small>Today</small><b><?= inr($today['t']) ?></b><span><?= (int)$today['n'] ?> orders</span></div>
   <div><small>This week</small><b><?= inr($week['t']) ?></b><span><?= (int)$week['n'] ?> orders</span></div>
   <div><small>This month</small><b><?= inr($month['t']) ?></b><span><?= (int)$month['n'] ?> orders</span></div>
-  <a href="?view=todo"><small>To do</small><b><?= $counts['todo'] ?></b><span><?= $counts['awaiting_route'] ?> awaiting route · <?= $notPaid ?> not paid</span></a>
+  <a href="?view=todo"><small>To do</small><b><?= $counts['todo'] ?></b><span><?= $counts['awaiting_route'] ?> awaiting route · <?= $notPaid ?> with money due</span></a>
   <a href="enquiries.php"><small>New enquiries</small><b><?= $newEnq ?></b><span>bulk &amp; contact</span></a>
 </div>
 

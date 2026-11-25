@@ -46,7 +46,7 @@ const STAGES = [
   'approved' => 'Approved', 'printing' => 'Printing', 'packed' => 'Packed', 'shipped' => 'Shipped',
   'delivered' => 'Delivered', 'cancelled' => 'Cancelled',
 ];
-const PAYMENT = ['pending' => 'Pending', 'paid' => 'Paid', 'failed' => 'Failed', 'refunded' => 'Refunded', 'cod' => 'Cash on delivery'];
+const PAYMENT = ['pending' => 'Pending', 'paid' => 'Paid', 'advance' => 'Advance paid', 'failed' => 'Failed', 'refunded' => 'Refunded', 'cod' => 'Cash on delivery'];
 const ENQUIRY_STATUS = ['new' => 'New', 'contacted' => 'Contacted', 'quoted' => 'Quote sent', 'won' => 'Won', 'lost' => 'Lost'];
 
 function now(): string { return date('Y-m-d H:i:s'); }
@@ -116,6 +116,8 @@ function migrate(PDO $p): void {
   // archive = hidden from admin lists and totals, restorable; delete is only allowed once archived
   try { $p->exec('ALTER TABLE orders ADD COLUMN archived INT DEFAULT 0'); } catch (PDOException $e) {}
   try { $p->exec('ALTER TABLE enquiries ADD COLUMN archived INT DEFAULT 0'); } catch (PDOException $e) {}
+  // part payment taken up front (payment_status 'advance'); balance due = total - advance_paid
+  try { $p->exec('ALTER TABLE orders ADD COLUMN advance_paid INT DEFAULT 0'); } catch (PDOException $e) {}
   // admin-only products for custom / offline orders — never shown on the website
   $p->exec("CREATE TABLE IF NOT EXISTS custom_products (
     id $id, created_at VARCHAR(20), name VARCHAR(160), price INT DEFAULT 0, category VARCHAR(80) DEFAULT '',

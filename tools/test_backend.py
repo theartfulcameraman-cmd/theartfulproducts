@@ -125,6 +125,18 @@ s, b, _ = req("/admin/index.php"); check("All is the first tab and the default v
 s, b, _ = req("/admin/index.php?view=todo")
 check("To do lists unpaid manual orders with Not paid", "Owes Money" in b and "Not paid" in b and "Awaiting payment" in b, b[-1500:])
 check("To do leaves out shipped and abandoned orders", order["order_no"] not in b)
+s, b, _ = req("/admin/new-order.php"); token = re.search(r'name="csrf" value="([^"]+)"', b).group(1)
+s, b, _ = req("/admin/new-order.php", form={"csrf": token, "item[0][id]": "terrain-frame", "item[0][qty]": "1", "name": "Half Paid", "phone": "9000033333", "payment_status": "advance", "advance_paid": "1500", "method": "UPI", "ship": "0"})
+check("advance order saved with amount and balance", "Advance paid" in b and "₹1,500 paid" in b and "₹1,999 due" in b, b[:300])
+s, b, _ = req("/admin/index.php?view=todo"); check("To do shows the advance and what's due", "Half Paid" in b and "Advance ₹1,500" in b and "₹1,999 due" in b)
+s, b, _ = req("/admin/index.php?view=all&q=Half%20Paid"); hid = re.findall(r"order\.php\?id=(\d+)", b)[0]
+s, b, _ = req(f"/admin/order.php?id={hid}"); token = re.search(r'name="csrf" value="([^"]+)"', b).group(1)
+base = {"csrf": token, "action": "update", "stage": "new", "payment_status": "advance", "courier": "", "tracking_no": "", "tracking_url": "", "admin_notes": ""}
+s, b, _ = req(f"/admin/order.php?id={hid}", form={**base, "advance_paid": "2500"}); check("advance amount can be changed", "₹2,500 paid" in b and "₹999 due" in b)
+s, b, _ = req(f"/admin/order.php?id={hid}", form={**base, "advance_paid": "3499"}); check("advance covering the total becomes Paid", "Advance covers the full amount" in b and "b-pay-paid" in b and " paid · " not in b)
+s, b, _ = req("/admin/new-order.php"); token = re.search(r'name="csrf" value="([^"]+)"', b).group(1)
+s, b, _ = req("/admin/new-order.php", form={"csrf": token, "item[0][id]": "trail-magnet", "item[0][qty]": "1", "name": "No Amount", "payment_status": "advance", "advance_paid": ""})
+check("advance without an amount is refused", "enter the advance amount" in b)
 print("\n7. Custom products (admin only, never on the website)")
 s, b, _ = req("/admin/products.php"); token = re.search(r'name="csrf" value="([^"]+)"', b).group(1)
 s, b, _ = req("/admin/products.php", form={"csrf": token, "id": "0", "name": "Corporate Trek Trophy", "price": "2500", "category": "Awards", "description": "Walnut base", "personal": "1", "active": "1"})
