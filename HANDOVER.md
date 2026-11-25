@@ -1,4 +1,4 @@
-# Hand-over: where the project stands (19 Nov 2026)
+# Hand-over: where the project stands (25 Nov 2026)
 
 Read this first when continuing on another computer or in a new Claude session. Technical guide: `README.md`.
 
@@ -26,6 +26,15 @@ Read this first when continuing on another computer or in a new Claude session. 
 - **Admin** `/admin`: orders (stages, tracking, WhatsApp templates, timeline, archive/restore/delete), + New order
   (website / custom / one-off items), **Customers** (repeat buyers matched by phone OR email, consent, CSV),
   Custom products (admin-only), Enquiries (archive/delete), CSV export.
+  Orders list: **All** tab first and default; **To do** = every unshipped order, marked Paid / Not paid.
+  Payment status **Advance paid**: enter the advance amount, balance due is shown live (new order + order detail).
+- **SKUs**: `TAP-<category>-<product>-<colour>` (e.g. `TAP-FRM-TER-OAK`), custom products `TAP-CUS-<cat>-<n>`,
+  one-off items `TAP-ONEOFF`. Each product in `data.js` has a `sku` (3-letter codes); rules in `site/api/_lib.php`.
+  Shown in admin, CSV export, product pages and Google product data.
+- **Instagram auto-posting** (free, Graph API): schedule posts in `social/queue.json` (image / carousel / reel,
+  India time, `"hold": true` to pause); media in `site/social/`. GitHub job `.github/workflows/instagram.yml`
+  runs every 15 min and records posts in `social/posted.json`. Guide: `social/README.md`.
+  Check a queue with `python tools/ig_publish.py --check`; tests: `python tools/test_ig_publish.py` (27 checks).
 - **Customer accounts**: passwordless (emailed 6-digit code), order tracking, checkout auto-fill.
 - **Email**: orders@theartfulproducts.com via the host's mail (multipart text+HTML). Owner alerts go to soham@theartfulcompany.com.
 - Contact: WhatsApp **+91 75881 30344**, orders@theartfulproducts.com.
@@ -37,6 +46,8 @@ Read this first when continuing on another computer or in a new Claude session. 
 - [ ] Instagram / YouTube links in `data.js`; switch the domain to PHP 8.x in mPanel (recommended)
 - [ ] Permission from Inspire India / riders for The Great Himalayan photos
 - [ ] Clean up in File Manager: stray `var` folder and unused `deploys` folder in the account root; delete website `theartful-nov-19-2026-1355`
+- [ ] Instagram: Meta setup (professional account, Facebook Page, developer app, Page token) and GitHub secrets
+      `IG_PAGE_TOKEN` + `IG_USER_ID` (steps in `social/README.md`); then add posts to `social/queue.json`
 - [ ] Make the GitHub repo private (optional)
 
 ## Setting up on a new computer
@@ -46,5 +57,11 @@ Read this first when continuing on another computer or in a new Claude session. 
 3. Preview the shop: `python -m http.server 8130 --directory site` → http://localhost:8130
 4. To test the order system locally: PHP 8.x zip from windows.php.net (enable curl, mbstring, openssl, pdo_sqlite,
    pdo_mysql in php.ini) + a local test `artful-config.php` in the project root (mock_razorpay, SQLite, mail_log_dir;
-   see README). Run `php -S localhost:8140 -t site`, then `python tools/test_backend.py` (91 checks).
+   see README). Run `php -S localhost:8140 -t site`, then `python tools/test_backend.py` (105 checks).
+   Delete `.local/test.sqlite` and `.local/mail` first: data left from an earlier run makes a Customers check fail.
+   On Windows, run Python tests with `PYTHONIOENCODING=utf-8` (the console can't print "→" otherwise).
 5. Don't work on two computers at once: always `git pull` before starting, and publish before switching.
+6. Each computer draws the share images (`site/assets/img/og/*.png`) slightly differently. If you didn't change a
+   product, undo them after a build with `git checkout -- site/assets/img/og` so they aren't re-uploaded for nothing.
+
+Home PC (set up 19 Nov): project at `E:\Ai video editor\Banh\theartfulproducts`, PHP at `C:\php\8.3`.
