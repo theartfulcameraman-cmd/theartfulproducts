@@ -167,13 +167,14 @@ function order_events(int $orderId): array {
   return $s->fetchAll();
 }
 
-/* $t = result of compute_order(); $c = customer fields */
-function order_create(array $t, array $c, string $note, string $source, ?string $rzpOrderId, string $payment = 'pending', string $method = '', bool $marketing = false): array {
+/* $t = result of compute_order(); $c = customer fields;
+   $createdAt = order date for a past order recorded by hand ('Y-m-d H:i:s'), null = now */
+function order_create(array $t, array $c, string $note, string $source, ?string $rzpOrderId, string $payment = 'pending', string $method = '', bool $marketing = false, ?string $createdAt = null): array {
   $pdo = db();
   $pdo->prepare('INSERT INTO orders (created_at, updated_at, source, payment_status, payment_method, stage, rzp_order_id,
       name, phone, email, address, city, pin, items, note, code, sub, disc, ship, wrap, total, admin_notes)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([
-    now(), now(), $source, $payment, $method, 'new', $rzpOrderId,
+    $createdAt ?: now(), now(), $source, $payment, $method, 'new', $rzpOrderId,
     clip($c['name'] ?? '', 120), clip($c['phone'] ?? '', 30), clip($c['email'] ?? '', 160),
     clip($c['address'] ?? '', 500), clip($c['city'] ?? '', 80), clip($c['pin'] ?? '', 10),
     json_encode($t['lines'], JSON_UNESCAPED_UNICODE), clip($note, 1000), $t['code'],

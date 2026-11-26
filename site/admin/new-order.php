@@ -58,8 +58,19 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
       if ($adv <= 0) throw new InvalidArgumentException('Please enter the advance amount received');
       if ($adv >= $t['total']) { $pay = 'paid'; $adv = 0; }   // advance covers everything = fully paid
     }
-    $o = order_create($t, $c, (string)($_POST['note'] ?? ''), 'manual', null, $pay, $method, !empty($_POST['marketing']));
+    /* order date: today (default) or a past date for an order recorded afterwards */
+    $created = null;
+    $day = trim((string)($_POST['order_date'] ?? ''));
+    if ($day !== '' && $day !== date('Y-m-d')) {
+      $d = DateTime::createFromFormat('!Y-m-d', $day);
+      if (!$d || $d->format('Y-m-d') !== $day) throw new InvalidArgumentException('Please check the order date');
+      if ($day > date('Y-m-d')) throw new InvalidArgumentException('The order date can\'t be in the future');
+      if ($day < '2020-01-01') throw new InvalidArgumentException('Please check the order date (before 2020)');
+      $created = $day . ' 12:00:00';
+    }
+    $o = order_create($t, $c, (string)($_POST['note'] ?? ''), 'manual', null, $pay, $method, !empty($_POST['marketing']), $created);
     $oid = (int)$o['id'];
+    if ($created) add_event($oid, 'created', 'Past order: order date ' . date('d M Y', strtotime($created)) . ', recorded ' . date('d M Y, g:ia'));
     if ($adv) { order_update($oid, ['advance_paid' => $adv]); add_event($oid, 'paid', 'Advance ' . inr($adv) . ' received' . ($method ? " · $method" : '') . ' · ' . inr($t['total'] - $adv) . ' due'); }
     $stage = isset(STAGES[$_POST['stage'] ?? '']) ? $_POST['stage'] : 'new';
     if ($stage === 'new' && in_array($pay, ['paid', 'advance', 'cod'], true) && array_filter($lines, fn($l) => $l['personal'])) $stage = 'awaiting_route';
@@ -123,6 +134,9 @@ page_start('New order', 'new-order.php');
   <label>PIN<input name="pin" inputmode="numeric"></label>
 
   <h2 class="full">Payment &amp; status</h2>
+  <label>Order date <small class="muted">(change it to record a past order)</small>
+    <input name="order_date" type="date" value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>" min="2020-01-01" required>
+    <small class="muted" data-past hidden>Past order: it's saved with this date and counts in that day's sales.</small></label>
   <label>Payment<select name="payment_status"><option value="paid">Paid in full</option><option value="advance">Advance paid</option><option value="pending">Not paid yet</option><option value="cod">Cash on delivery</option></select></label>
   <label data-advance hidden>Advance received (₹, any amount)<input name="advance_paid" type="number" min="1" placeholder="e.g. 1000"><small class="muted" data-due></small></label>
   <label>Method<select name="method"><option>UPI</option><option>Cash</option><option>Card</option><option>Bank transfer</option><option>Payment link</option><option>Invoice</option></select></label>
@@ -135,6 +149,18 @@ page_start('New order', 'new-order.php');
   <button class="btn primary">Add order</button>
 </form>
 <script>
+/* past order: once a date before today is picked, suggest Delivered and don't email the customer (both can be changed back) */
+(() => {
+  const f = document.getElementById('nf'), d = f.order_date, hint = f.querySelector('[data-past]'), today = d.max;
+  let was = false;
+  d.addEventListener('change', () => {
+    const past = !!d.value && d.value < today;
+    hint.hidden = !past;
+    if (past && !was) { if (f.stage.value === 'new') f.stage.value = 'delivered'; f.send_email.checked = false; }
+    if (!past && was && f.stage.value === 'delivered') f.stage.value = 'new';
+    was = past;
+  });
+})();
 /* show the advance-amount box only when "Advance paid" is picked */
 document.querySelectorAll('select[name="payment_status"]').forEach(sel => {
   const box = sel.form.querySelector('[data-advance]'); if (!box) return;

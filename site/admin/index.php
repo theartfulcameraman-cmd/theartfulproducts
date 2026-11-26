@@ -25,7 +25,7 @@ if ($q !== '') {
 }
 $page = max(1, (int)($_GET['p'] ?? 1)); $per = 50;
 $total = db()->prepare("SELECT COUNT(*) FROM orders WHERE $where"); $total->execute($args); $count = (int)$total->fetchColumn();
-$s = db()->prepare("SELECT * FROM orders WHERE $where ORDER BY id DESC LIMIT $per OFFSET " . (($page - 1) * $per));
+$s = db()->prepare("SELECT * FROM orders WHERE $where ORDER BY created_at DESC, id DESC LIMIT $per OFFSET " . (($page - 1) * $per));
 $s->execute($args); $orders = $s->fetchAll();
 
 /* view counts + headline numbers */

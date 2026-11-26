@@ -8,7 +8,7 @@ $views = order_views();
 $where = ($views[$_GET['view'] ?? 'all'] ?? $views['all'])[1]; $args = [];
 $q = trim((string)($_GET['q'] ?? ''));
 if ($q !== '') { $where .= ' AND (order_no LIKE ? OR name LIKE ? OR phone LIKE ? OR email LIKE ? OR city LIKE ?)'; $args = array_fill(0, 5, "%$q%"); }
-$s = db()->prepare("SELECT * FROM orders WHERE $where ORDER BY id DESC"); $s->execute($args);
+$s = db()->prepare("SELECT * FROM orders WHERE $where ORDER BY created_at DESC, id DESC"); $s->execute($args);
 
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="artful-orders-' . date('Y-m-d') . '.csv"');

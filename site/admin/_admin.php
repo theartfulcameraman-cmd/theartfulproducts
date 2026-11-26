@@ -88,7 +88,7 @@ function page_start(string $title, string $active = ''): void {
   $nav = ['index.php' => 'Orders', 'new-order.php' => '+ New order', 'customers.php' => 'Customers', 'products.php' => 'Custom products', 'enquiries.php' => 'Enquiries'];
   echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow"><title>' . e($title) . ' · Admin · The Artful Products</title>
-  <link rel="icon" href="../assets/img/mark.svg"><link rel="stylesheet" href="admin.css?v=9"></head><body>
+  <link rel="icon" href="../assets/img/mark.svg"><link rel="stylesheet" href="admin.css?v=10"></head><body>
   <header class="top"><a class="brand" href="index.php"><img src="../assets/img/logo-main.svg" alt="The Artful Products"><span>Admin</span></a>';
   if (logged_in()) {
     echo '<nav>';
